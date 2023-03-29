@@ -47,7 +47,7 @@ const getCurrentCamera = () => {
 }
 
 const createCallback = (entity: Entity) => {
-	const colorProperty = new CallbackProperty((t, r) => {
+	const colorProperty = new CallbackProperty((_t, r) => {
 		if (highlightedEntities.length) {
 			if (highlightedEntities.find((e: Entity) => e.id === entity.id)) {
 				return Color.clone(highlightColor, r);
@@ -96,7 +96,6 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 	}
 
 	if (cartesian) {
-		const cartographic = Cartographic.fromCartesian(cartesian);
 		if (pick?.id?.name) {
 			const ray: Ray | undefined = viewer.camera.getPickRay(movement.endPosition);
 			tooltip.position = cartesian ? cartesian : scene.globe.pick(ray ? ray : new Ray(), scene);
