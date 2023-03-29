@@ -1,5 +1,5 @@
 import './style.css'
-import { Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, HorizontalOrigin, VerticalOrigin, Cartographic, Ray, JulianDate, Cartesian3 } from 'cesium'
+import { Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, HorizontalOrigin, VerticalOrigin, Ray, JulianDate, Cartesian3 } from 'cesium'
 
 const highlightColor = Color.RED.withAlpha(.8);
 const baseColor = Color.WHITE.withAlpha(.2);
