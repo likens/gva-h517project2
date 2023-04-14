@@ -1,5 +1,5 @@
 import './style.css'
-import { Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, HorizontalOrigin, VerticalOrigin, Ray, JulianDate, Cartesian3, ConstantProperty } from 'cesium'
+import { Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, HorizontalOrigin, VerticalOrigin, Ray, JulianDate, Cartesian3, ConstantProperty, HeightReference } from 'cesium'
 import { Incident, findStateByCode } from "./utils";
 
 const highlightColor = Color.RED.withAlpha(1);
@@ -79,7 +79,7 @@ const setupDataMaps = (data: any) => {
 			}
 		}
 		if (d.cd) {
-			const state = d.st ? d.st : "NO_STATE";
+			const state = d.st ? d.st : "NOSTATE";
 			let cd = d.cd;
 			if (cd.length < 2) {
 				cd = `0${cd}`;
@@ -98,8 +98,8 @@ const setupDataMaps = (data: any) => {
 			}
 		}
 		if (d.cty) {
-			const state = d.st ? d.st : "NO_STATE";
-			const county = d.cny ? d.cny : "NO_COUNTY";
+			const state = d.st ? d.st : "NOSTATE";
+			const county = d.cny ? d.cny : "NOCOUNTY";
 			const city = d.cty;
 			const key = `${city}_${county}_${state}`
 			if (US_CITY_MAP.has(key)) {
@@ -110,7 +110,7 @@ const setupDataMaps = (data: any) => {
 				const obj = {
 					incidents: 1,
 					color: Color.fromRandom({alpha: 1.0}),
-					location: `${d.lat},${d.lng}` // setting first lat/lng for now
+					location: `${d.lng},${d.lat}` // setting first lat/lng for now
 				}
 				US_CITY_MAP.set(key, obj);
 			}
@@ -219,6 +219,8 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 				} else {
 					tooltip.label.text = `${props.NAME.getValue()} - ${US_STATES_MAP.get(state?.abbr).incidents} incidents`;
 				}
+			} else if (pick.id.name) {
+				tooltip.label.text = pick.id.name;
 			}
 		}
 		else {
@@ -249,7 +251,7 @@ const setupTooltip = () => {
 const setupDataSource = (dataSource: string) => {
 
 	viewer.dataSources.removeAll();
-	viewer.entities.removeAll();
+	// viewer.entities.removeAll();
 
 	if (dataSource) {
 		const loadSource = GeoJsonDataSource.load(dataSource, baseStyle);
@@ -308,14 +310,26 @@ const setupDataSource = (dataSource: string) => {
 			}
 		})
 	} else {
-		US_CITY_MAP.forEach(city => {
+		US_CITY_MAP.forEach((city, key) => {
+			const name = key.split("_");
 			const location = city.location.split(",");
+			const incidents = city.incidents;
+			const scale = incidents / 200;
 			viewer.entities.add({
-				position: Cartesian3.fromDegrees(Number(location[1]), Number(location[0]), 0),
+				name: `${name[0]}, ${name[2]} - ${incidents} incidents`,
+				position: Cartesian3.fromDegrees(Number(location[0]), Number(location[1]), 0),
 				point: {
-					pixelSize: (city.incidents / 100) < 2 ? 2 : city.incidents / 100,
+					pixelSize: (scale) < 2 ? 2 : scale,
 					color: Color.YELLOW
-				}
+				},
+				ellipse: {
+					semiMinorAxis: 2000,
+					semiMajorAxis: 2000,
+					heightReference: HeightReference.RELATIVE_TO_GROUND,
+					material: Color.YELLOW.withAlpha(.5),
+					height: 0,
+					extrudedHeight: incidents * 50
+				},
 			})
 		})
 	}
