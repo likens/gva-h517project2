@@ -23,15 +23,27 @@ const scene = viewer.scene;
 const camera = viewer.camera;
 const handler = viewer.screenSpaceEventHandler;
 
-
 let US_STATES_MAP = new Map();
 let US_COUNTIES_MAP = new Map();
 let US_CD_MAP = new Map();
 
-
 Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
-	console.log(data);
-	data[0].forEach((d: Incident) => {
+	
+	setupDataMaps(data[0]);
+	setupInitCamera();
+	setupTooltip();	
+	setupDataSource(usStatesGeoJson);
+	
+	const setupDataSourceButtons = (buttons: HTMLButtonElement[]) => {
+		buttons.forEach(btn => btn.addEventListener('click', () => setupDataSource(btn.dataset.source as any)));
+	}
+	
+	setupDataSourceButtons(Array.from(document.querySelectorAll<HTMLButtonElement>('#toolbar button')))
+
+})
+
+const setupDataMaps = (data: any) => {
+	data.forEach((d: Incident) => {
 		// if (d.cty === "Fort Wayne") {
 		// 	console.log(d);
 		// }
@@ -96,7 +108,9 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 	console.log(US_STATES_MAP);
 	console.log(US_COUNTIES_MAP);
 	console.log(US_CD_MAP);
+}
 
+const setupInitCamera = () => {
 	camera.flyTo({
 		destination: new Cartesian3(-1053594.94012635, -8153616.159871477, 6250954.07672872),
 		orientation: {
@@ -106,33 +120,100 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 		},
 		duration: 1
 	})
+}
 	
-	const getCurrentCamera = () => {
-		return {
-			orientation: {
-				heading: camera.heading,
-				pitch: camera.pitch,
-				roll: camera.roll
-			}, 
-			destination: {
-				...camera.position
-			}
+const getCurrentCamera = () => {
+	return {
+		orientation: {
+			heading: camera.heading,
+			pitch: camera.pitch,
+			roll: camera.roll
+		}, 
+		destination: {
+			...camera.position
 		}
 	}
+}
+
+const updateMaterial = (entity: Entity, color: Color) => {
+	const colorProperty = new CallbackProperty((_t, r) => {
+		if (highlightedEntities.length) {
+			if (highlightedEntities.find((e: Entity) => e.id === entity.id)) {
+				return Color.clone(highlightColor, r);
+			}
+		}
+		return Color.clone(color, r);
+	}, false);
 	
-	const createCallback = (entity: Entity, color: Color) => {
-		const colorProperty = new CallbackProperty((_t, r) => {
-			if (highlightedEntities.length) {
-				if (highlightedEntities.find((e: Entity) => e.id === entity.id)) {
-					return Color.clone(highlightColor, r);
+	return new ColorMaterialProperty(colorProperty);
+}
+
+camera.moveEnd.addEventListener(() => {
+	console.log("CAMERA:", getCurrentCamera());
+})
+
+handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
+	const tooltip: any = viewer.entities.getById('tooltip');
+	const cartesian = scene.pickPosition(movement.endPosition);
+	const pick = scene.pick(movement.endPosition);
+	const pickedObject: Entity = scene.pick(movement.endPosition)?.id;
+
+	if (defined(pickedObject)) {
+		const props = pickedObject.properties?.getValue(JulianDate.now());
+		if (props?.COUNTY) {
+			highlightedEntities = countyEntities.filter(e => e.properties?.getValue(JulianDate.now()).GEO_ID === props.GEO_ID);
+		} else if (props?.CD) {
+			highlightedEntities = congressionalEntities.filter(e => e.properties?.getValue(JulianDate.now()).GEO_ID === props.GEO_ID);
+		} else {
+			highlightedEntities = stateEntities.filter(e => e.properties?.getValue(JulianDate.now()).GEO_ID === props.GEO_ID);
+		}
+	} else{
+		highlightedEntities = [];
+	}
+
+	if (cartesian) {
+		if (pick?.id) {
+			const ray: Ray | undefined = viewer.camera.getPickRay(movement.endPosition);
+			tooltip.position = cartesian ? cartesian : scene.globe.pick(ray ? ray : new Ray(), scene);
+			tooltip.label.show = true;
+			tooltip.label.font = "20px sans-serif";
+			if (pick.id.properties) {
+				const props = pick.id.properties;
+				const state = findStateByCode(props.STATE.getValue());
+				if (props.COUNTY) {
+					const key = `${props.NAME.getValue()}_${state?.abbr}`;
+					const incidents = US_COUNTIES_MAP.get(key)?.incidents;
+					const title = `${props.NAME.getValue()} ${props.LSAD.getValue()}, ${state?.abbr}`
+					if (!incidents) {
+						tooltip.label.text = `${title} - 0 incidents`;
+					} else {
+						tooltip.label.text = `${title} - ${incidents} incidents`;
+					}
+				} else if (props.CD) {
+					const key = `${props.CD.getValue()}_${state?.abbr}`;
+					const incidents = US_CD_MAP.get(key)?.incidents;
+					const title = `District ${props.CD.getValue()}, ${state?.abbr}`
+					if (!incidents) {
+						tooltip.label.text = `${title} - 0 incidents`;
+					} else {
+						tooltip.label.text = `${title} - ${incidents} incidents`;
+					}
+				} else {
+					tooltip.label.text = `${props.NAME.getValue()} - ${US_STATES_MAP.get(state?.abbr).incidents} incidents`;
 				}
 			}
-			return Color.clone(color, r);
-		}, false);
-		
-		return new ColorMaterialProperty(colorProperty);
+		}
+		else {
+			tooltip.label.show = false;
+		}
+
+	} else {
+		tooltip.label.show = false;
 	}
-	
+
+}, ScreenSpaceEventType.MOUSE_MOVE);
+
+const setupTooltip = () => {
 	viewer.entities.add({
 		id: 'tooltip',
 		label: {
@@ -145,137 +226,63 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			pixelOffset: new Cartesian2(15, 30)
 		}
 	});
-	
-	camera.moveEnd.addEventListener(() => {
-		console.log("CAMERA:", getCurrentCamera());
-	})
-	
-	handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
-		const tooltip: any = viewer.entities.getById('tooltip');
-		const cartesian = scene.pickPosition(movement.endPosition);
-		const pick = scene.pick(movement.endPosition);
-		const pickedObject: Entity = scene.pick(movement.endPosition)?.id;
-	
-		if (defined(pickedObject)) {
-			const props = pickedObject.properties?.getValue(JulianDate.now());
-			if (props?.COUNTY) {
-				highlightedEntities = countyEntities.filter(e => e.properties?.getValue(JulianDate.now()).GEO_ID === props.GEO_ID);
-			} else if (props?.CD) {
-				highlightedEntities = congressionalEntities.filter(e => e.properties?.getValue(JulianDate.now()).GEO_ID === props.GEO_ID);
-			} else {
-				highlightedEntities = stateEntities.filter(e => e.properties?.getValue(JulianDate.now()).GEO_ID === props.GEO_ID);
-			}
-		} else{
-			highlightedEntities = [];
-		}
-	
-		if (cartesian) {
-			if (pick?.id) {
-				const ray: Ray | undefined = viewer.camera.getPickRay(movement.endPosition);
-				tooltip.position = cartesian ? cartesian : scene.globe.pick(ray ? ray : new Ray(), scene);
-				tooltip.label.show = true;
-				tooltip.label.font = "20px sans-serif";
-				if (pick.id.properties) {
-					const props = pick.id.properties;
-					const state = findStateByCode(props.STATE.getValue());
-					if (props.COUNTY) {
-						const key = `${props.NAME.getValue()}_${state?.abbr}`;
-						const incidents = US_COUNTIES_MAP.get(key)?.incidents;
-						const title = `${props.NAME.getValue()} ${props.LSAD.getValue()}, ${state?.abbr}`
-						if (!incidents) {
-							tooltip.label.text = `${title} - 0 incidents`;
-						} else {
-							tooltip.label.text = `${title} - ${incidents} incidents`;
-						}
-					} else if (props.CD) {
-						const key = `${props.CD.getValue()}_${state?.abbr}`;
-						const incidents = US_CD_MAP.get(key)?.incidents;
-						const title = `District ${props.CD.getValue()}, ${state?.abbr}`
-						if (!incidents) {
-							tooltip.label.text = `${title} - 0 incidents`;
-						} else {
-							tooltip.label.text = `${title} - ${incidents} incidents`;
-						}
-					} else {
-						tooltip.label.text = `${props.NAME.getValue()} - ${US_STATES_MAP.get(state?.abbr).incidents} incidents`;
-					}
-				}
-			}
-			else {
-				tooltip.label.show = false;
-			}
-	
-		} else {
-			tooltip.label.show = false;
-		}
-	
-	}, ScreenSpaceEventType.MOUSE_MOVE);
-	
-	const setupDataSource = (dataSource: string) => {
-		viewer.dataSources.removeAll();
-		const loadSource = GeoJsonDataSource.load(dataSource, baseStyle);
-		loadSource.then((source) => {
-			viewer.dataSources.add(source);
-			let entities: any[] = [];
-			switch (dataSource) {
-				case usCongressionalGeoJson:
-					congressionalEntities = source.entities.values;
-					entities = congressionalEntities;
-					break;
-				case usCountiesGeoJson:
-					countyEntities = source.entities.values;
-					entities = countyEntities;
-					break;
-				case usStatesGeoJson:
-					stateEntities = source.entities.values;
-					entities = stateEntities;
-					break;
-			}
-			for (var i = 0; i < entities.length; i++) {
-				const entity: Entity = entities[i];
-				if (entity) {
-					if (entity?.properties?.GEO_ID.getValue()) {
-						if (entity.polygon) {
-							let incidents = 0;
-							let color = undefined;
-							let multiplier = 50;
-							const abbr = findStateByCode(entity.properties.STATE.getValue())?.abbr;
-							if (entity.properties.COUNTY) {
-								const county = US_COUNTIES_MAP.get(`${entity.properties.NAME.getValue()}_${abbr}`);
-								if (county) {
-									incidents = county.incidents;
-									color = county.color;
-								}
-							} else if (entity.properties.CD) {
-								const cd = US_CD_MAP.get(`${entity.properties.CD.getValue()}_${abbr}`);
-								if (cd) {
-									incidents = cd.incidents;
-									color = cd.color;
-								}
-							} else if (entity.properties.STATE) {
-								const state = US_STATES_MAP.get(abbr);
-								if (state) {
-									incidents = state.incidents;
-									color = state.color;
-									multiplier = 30;
-								}
-							}
-							entity.polygon.material = createCallback(entity, color);
-							entity.polygon.outline = new ConstantProperty(false);
-							entity.polygon.extrudedHeight = new ConstantProperty(incidents ? incidents * multiplier : undefined);
-						}
-					}
-				}
-			}
-		})
-	}
-	
-	setupDataSource(usStatesGeoJson);
-	
-	const setupDataSourceButtons = (buttons: HTMLButtonElement[]) => {
-		buttons.forEach(btn => btn.addEventListener('click', () => setupDataSource(btn.dataset.source as any)));
-	}
-	
-	setupDataSourceButtons(Array.from(document.querySelectorAll<HTMLButtonElement>('#toolbar button')))
+}
 
-})
+const setupDataSource = (dataSource: string) => {
+	viewer.dataSources.removeAll();
+	const loadSource = GeoJsonDataSource.load(dataSource, baseStyle);
+	loadSource.then((source) => {
+		viewer.dataSources.add(source);
+		let entities: any[] = [];
+		switch (dataSource) {
+			case usCongressionalGeoJson:
+				congressionalEntities = source.entities.values;
+				entities = congressionalEntities;
+				break;
+			case usCountiesGeoJson:
+				countyEntities = source.entities.values;
+				entities = countyEntities;
+				break;
+			case usStatesGeoJson:
+				stateEntities = source.entities.values;
+				entities = stateEntities;
+				break;
+		}
+		for (var i = 0; i < entities.length; i++) {
+			const entity: Entity = entities[i];
+			if (entity) {
+				if (entity?.properties?.GEO_ID.getValue()) {
+					if (entity.polygon) {
+						let incidents = 0;
+						let color = undefined;
+						let multiplier = 50;
+						const abbr = findStateByCode(entity.properties.STATE.getValue())?.abbr;
+						if (entity.properties.COUNTY) {
+							const county = US_COUNTIES_MAP.get(`${entity.properties.NAME.getValue()}_${abbr}`);
+							if (county) {
+								incidents = county.incidents;
+								color = county.color;
+							}
+						} else if (entity.properties.CD) {
+							const cd = US_CD_MAP.get(`${entity.properties.CD.getValue()}_${abbr}`);
+							if (cd) {
+								incidents = cd.incidents;
+								color = cd.color;
+							}
+						} else if (entity.properties.STATE) {
+							const state = US_STATES_MAP.get(abbr);
+							if (state) {
+								incidents = state.incidents;
+								color = state.color;
+								multiplier = 30;
+							}
+						}
+						entity.polygon.material = updateMaterial(entity, color);
+						entity.polygon.outline = new ConstantProperty(false);
+						entity.polygon.extrudedHeight = new ConstantProperty(incidents ? incidents * multiplier : undefined);
+					}
+				}
+			}
+		}
+	})
+}
