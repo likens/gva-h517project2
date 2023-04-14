@@ -26,6 +26,7 @@ const handler = viewer.screenSpaceEventHandler;
 let US_STATES_MAP = new Map();
 let US_COUNTIES_MAP = new Map();
 let US_CD_MAP = new Map();
+let US_CITY_MAP = new Map();
 
 Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 	
@@ -43,10 +44,9 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 })
 
 const setupDataMaps = (data: any) => {
+
 	data.forEach((d: Incident) => {
-		// if (d.cty === "Fort Wayne") {
-		// 	console.log(d);
-		// }
+		
 		if (d.st) {
 			const state = d.st;
 			if (US_STATES_MAP.has(state)) {
@@ -79,24 +79,40 @@ const setupDataMaps = (data: any) => {
 			}
 		}
 		if (d.cd) {
-			const state = d.st;
+			const state = d.st ? d.st : "NO_STATE";
 			let cd = d.cd;
 			if (cd.length < 2) {
 				cd = `0${cd}`;
 			}
 			const key = `${cd}_${state}`;
-			if (state) {
-				if (US_CD_MAP.has(key)) {
-					const obj = US_CD_MAP.get(key);
-					obj.incidents = obj.incidents + 1;
-					US_CD_MAP.set(key, obj);
-				} else {
-					const obj = {
-						incidents: 1,
-						color: Color.fromRandom({alpha: 1.0})
-					}
-					US_CD_MAP.set(key, obj);
+			if (US_CD_MAP.has(key)) {
+				const obj = US_CD_MAP.get(key);
+				obj.incidents = obj.incidents + 1;
+				US_CD_MAP.set(key, obj);
+			} else {
+				const obj = {
+					incidents: 1,
+					color: Color.fromRandom({alpha: 1.0})
 				}
+				US_CD_MAP.set(key, obj);
+			}
+		}
+		if (d.cty) {
+			const state = d.st ? d.st : "NO_STATE";
+			const county = d.cny ? d.cny : "NO_COUNTY";
+			const city = d.cty;
+			const key = `${city}_${county}_${state}`
+			if (US_CITY_MAP.has(key)) {
+				const obj = US_CITY_MAP.get(key);
+				obj.incidents = obj.incidents + 1;
+				US_CITY_MAP.set(key, obj);
+			} else {
+				const obj = {
+					incidents: 1,
+					color: Color.fromRandom({alpha: 1.0}),
+					location: `${d.lat},${d.lng}` // setting first lat/lng for now
+				}
+				US_CITY_MAP.set(key, obj);
 			}
 		}
 	})
@@ -104,10 +120,12 @@ const setupDataMaps = (data: any) => {
 	US_STATES_MAP = new Map(Array.from(US_STATES_MAP.entries()).sort());
 	US_COUNTIES_MAP = new Map(Array.from(US_COUNTIES_MAP.entries()).sort());
 	US_CD_MAP = new Map(Array.from(US_CD_MAP.entries()).sort());
+	US_CITY_MAP = new Map(Array.from(US_CITY_MAP.entries()).sort());
 
 	console.log(US_STATES_MAP);
 	console.log(US_COUNTIES_MAP);
 	console.log(US_CD_MAP);
+	console.log(US_CITY_MAP);
 }
 
 const setupInitCamera = () => {
@@ -164,7 +182,7 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 			highlightedEntities = countyEntities.filter(e => e.properties?.getValue(JulianDate.now()).GEO_ID === props.GEO_ID);
 		} else if (props?.CD) {
 			highlightedEntities = congressionalEntities.filter(e => e.properties?.getValue(JulianDate.now()).GEO_ID === props.GEO_ID);
-		} else {
+		} else if (props?.STATE) {
 			highlightedEntities = stateEntities.filter(e => e.properties?.getValue(JulianDate.now()).GEO_ID === props.GEO_ID);
 		}
 	} else{
@@ -229,60 +247,77 @@ const setupTooltip = () => {
 }
 
 const setupDataSource = (dataSource: string) => {
+
 	viewer.dataSources.removeAll();
-	const loadSource = GeoJsonDataSource.load(dataSource, baseStyle);
-	loadSource.then((source) => {
-		viewer.dataSources.add(source);
-		let entities: any[] = [];
-		switch (dataSource) {
-			case usCongressionalGeoJson:
-				congressionalEntities = source.entities.values;
-				entities = congressionalEntities;
-				break;
-			case usCountiesGeoJson:
-				countyEntities = source.entities.values;
-				entities = countyEntities;
-				break;
-			case usStatesGeoJson:
-				stateEntities = source.entities.values;
-				entities = stateEntities;
-				break;
-		}
-		for (var i = 0; i < entities.length; i++) {
-			const entity: Entity = entities[i];
-			if (entity) {
-				if (entity?.properties?.GEO_ID.getValue()) {
-					if (entity.polygon) {
-						let incidents = 0;
-						let color = undefined;
-						let multiplier = 50;
-						const abbr = findStateByCode(entity.properties.STATE.getValue())?.abbr;
-						if (entity.properties.COUNTY) {
-							const county = US_COUNTIES_MAP.get(`${entity.properties.NAME.getValue()}_${abbr}`);
-							if (county) {
-								incidents = county.incidents;
-								color = county.color;
+	viewer.entities.removeAll();
+
+	if (dataSource) {
+		const loadSource = GeoJsonDataSource.load(dataSource, baseStyle);
+		loadSource.then((source) => {
+			viewer.dataSources.add(source);
+			let entities: any[] = [];
+			switch (dataSource) {
+				case usCongressionalGeoJson:
+					congressionalEntities = source.entities.values;
+					entities = congressionalEntities;
+					break;
+				case usCountiesGeoJson:
+					countyEntities = source.entities.values;
+					entities = countyEntities;
+					break;
+				case usStatesGeoJson:
+					stateEntities = source.entities.values;
+					entities = stateEntities;
+					break;
+			}
+			for (var i = 0; i < entities.length; i++) {
+				const entity: Entity = entities[i];
+				if (entity) {
+					if (entity?.properties?.GEO_ID.getValue()) {
+						if (entity.polygon) {
+							let incidents = 0;
+							let color = undefined;
+							let multiplier = 50;
+							const abbr = findStateByCode(entity.properties.STATE.getValue())?.abbr;
+							if (entity.properties.COUNTY) {
+								const county = US_COUNTIES_MAP.get(`${entity.properties.NAME.getValue()}_${abbr}`);
+								if (county) {
+									incidents = county.incidents;
+									color = county.color;
+								}
+							} else if (entity.properties.CD) {
+								const cd = US_CD_MAP.get(`${entity.properties.CD.getValue()}_${abbr}`);
+								if (cd) {
+									incidents = cd.incidents;
+									color = cd.color;
+								}
+							} else if (entity.properties.STATE) {
+								const state = US_STATES_MAP.get(abbr);
+								if (state) {
+									incidents = state.incidents;
+									color = state.color;
+									multiplier = 30;
+								}
 							}
-						} else if (entity.properties.CD) {
-							const cd = US_CD_MAP.get(`${entity.properties.CD.getValue()}_${abbr}`);
-							if (cd) {
-								incidents = cd.incidents;
-								color = cd.color;
-							}
-						} else if (entity.properties.STATE) {
-							const state = US_STATES_MAP.get(abbr);
-							if (state) {
-								incidents = state.incidents;
-								color = state.color;
-								multiplier = 30;
-							}
+							entity.polygon.material = updateMaterial(entity, color);
+							entity.polygon.outline = new ConstantProperty(false);
+							entity.polygon.extrudedHeight = new ConstantProperty(incidents ? incidents * multiplier : undefined);
 						}
-						entity.polygon.material = updateMaterial(entity, color);
-						entity.polygon.outline = new ConstantProperty(false);
-						entity.polygon.extrudedHeight = new ConstantProperty(incidents ? incidents * multiplier : undefined);
 					}
 				}
 			}
-		}
-	})
+		})
+	} else {
+		US_CITY_MAP.forEach(city => {
+			const location = city.location.split(",");
+			viewer.entities.add({
+				position: Cartesian3.fromDegrees(Number(location[1]), Number(location[0]), 0),
+				point: {
+					pixelSize: (city.incidents / 100) < 2 ? 2 : city.incidents / 100,
+					color: Color.YELLOW
+				}
+			})
+		})
+	}
+
 }
