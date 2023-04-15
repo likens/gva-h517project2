@@ -21,11 +21,15 @@ export type Incident = {
     st: string
 }
 
-// enum IncidentParticipantAgeGroup {
-//     Adult8,
-//     Teen27,
-//     Child1
-// }
+enum IncidentParticipantAgeGroup {
+    Adult = "Adult 18+",
+    Teen = "Teen 12-17",
+    Child = "Child 0-11"
+}
+
+export const STR_ADULT = IncidentParticipantAgeGroup.Adult;
+export const STR_TEEN = IncidentParticipantAgeGroup.Teen;
+export const STR_CHILD = IncidentParticipantAgeGroup.Child;
 
 // enum IncidentParticipantStatus {
 //     Killed,
@@ -39,10 +43,13 @@ export type Incident = {
 //     Subject_Suspect
 // }
 
-// enum IncidentParticipantGender {
-//     Male,
-//     Female
-// }
+enum IncidentParticipantGender {
+    Male = "Male",
+    Female = "Female"
+}
+
+export const STR_FEMALE = IncidentParticipantGender.Female;
+export const STR_MALE = IncidentParticipantGender.Male;
 
 interface UsState {
     full: string;
@@ -304,6 +311,11 @@ export const US_STATES_DICT: StateDict = {
         full: "Wyoming",
         code: "56",
         abbr: "WY"
+    },
+    DC: {
+        full: "District of Columbia",
+        code: "11",
+        abbr: "DC"
     },
     PR: {
         full: "Puerto Rico",
