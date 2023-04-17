@@ -2,18 +2,26 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>H517 Project 2</title>
 	</head>
 	<body>
-		<div id="toolbar" class="absolute top-3 left-3 z-20 flex gap-3">
-			<button class="bg-white/70 text-black border border-white border-solid rounded-md uppercase px-4 py-2 font-bold" type="button" data-source="us_st.json">US States</button>
-			<button class="bg-white/70 text-black border border-white border-solid rounded-md uppercase px-4 py-2 font-bold" type="button" data-source="us_cny.json">US Counties</button>
-			<button class="bg-white/70 text-black border border-white border-solid rounded-md uppercase px-4 py-2 font-bold" type="button" data-source="us_cd.json">US Congressional Districts</button>
-			<button class="bg-white/70 text-black border border-white border-solid rounded-md uppercase px-4 py-2 font-bold" type="button" data-source="">US Cities/Towns</button>
+
+		<div class="master flex w-screen h-screen">
+			<div id="sidebar" class="w-1/4 h-full grid items-start self-start bg-slate-800 border-slate-600 border-solid border-r text-white">
+				<div id="geo" class="grid">
+					<button class="uppercase px-4 py-2 font-bold hover:bg-slate-600" type="button" data-source="us_st.json">States</button>
+					<button class="uppercase px-4 py-2 font-bold hover:bg-slate-600" type="button" data-source="us_cny.json">Counties</button>
+					<button class="uppercase px-4 py-2 font-bold hover:bg-slate-600" type="button" data-source="us_cd.json">Congressional Districts</button>
+					<button class="uppercase px-4 py-2 font-bold hover:bg-slate-600" type="button" data-source="us_cty">Cities & Towns</button>
+					<button class="uppercase px-4 py-2 font-bold hover:bg-slate-600" type="button" data-source="">By Coordinates</button>
+				</div>
+			</div>
+			<div id="cesium" class="!relative w-full h-full z-10 overflow-hidden">
+				<div id="tooltip" class="absolute top-0 left-0 bg-slate-800 text-white border-slate-600 border-solid border font-bold py-2 px-4 z-50"></div>
+			</div>
 		</div>
-		<div id="cesium" class="absolute top-0 left-0 right-0 bottom-0 z-10"></div>
+
 		<script type="module" src="/src/main.ts"></script>
 	</body>
 </html>

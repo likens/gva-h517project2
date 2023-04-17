@@ -21,7 +21,7 @@ export type Incident = {
     st: string
 }
 
-enum IncidentParticipantAgeGroup {
+export enum IncidentParticipantAgeGroup {
     Adult = "Adult 18+",
     Teen = "Teen 12-17",
     Child = "Child 0-11"
@@ -43,7 +43,7 @@ export const STR_CHILD = IncidentParticipantAgeGroup.Child;
 //     Subject_Suspect
 // }
 
-enum IncidentParticipantGender {
+export enum IncidentParticipantGender {
     Male = "Male",
     Female = "Female"
 }
@@ -51,8 +51,61 @@ enum IncidentParticipantGender {
 export const STR_FEMALE = IncidentParticipantGender.Female;
 export const STR_MALE = IncidentParticipantGender.Male;
 
+export type IncidentStats = {
+    count: number,
+    killed: number,
+    injured: number,
+    list: string[],
+    gender: {
+        [key in IncidentParticipantGender]: number
+    }
+    ageGroup: {
+        [key in IncidentParticipantAgeGroup]: number
+    }
+}
+
+export class IncidentState {
+    name: string;
+    abbr: string;
+    incidents: IncidentStats;
+    counties: IncidentCounty[];
+    constructor(name: string, abbr: string, incidents: IncidentStats, counties: IncidentCounty[]) {
+        this.name = name;
+        this.abbr = abbr;
+        this.incidents = incidents;
+        this.counties = counties;
+    }
+}
+
+export type IncidentCounty = {
+    name: string,
+    incidents: IncidentStats,
+    cities: IncidentCities[]
+}
+
+export type IncidentCities = {
+    name: string,
+    longitude: string,
+    latitude: string,
+    incidents: IncidentStats,
+    locations: IncidentLocations[]
+}
+
+export type IncidentLocations = {
+    longitude: string,
+    latitude: string,
+    incidents: IncidentStats
+}
+
+export class Bucket {
+    state: IncidentState;
+    constructor(state: IncidentState) {
+        this.state = state;
+    }
+}
+
 interface UsState {
-    full: string;
+    name: string;
     code: string;
     abbr: string;
 }
@@ -63,262 +116,262 @@ interface StateDict {
 
 export const US_STATES_DICT: StateDict = {
     AL: {
-        full: "Alabama",
+        name: "Alabama",
         code: "01",
         abbr: "AL"
     },
     AK: {
-        full: "Alaska",
+        name: "Alaska",
         code: "02",
         abbr: "AK"
     },
     AZ: {
-        full: "Arizona",
+        name: "Arizona",
         code: "04",
         abbr: "AZ"
     },
     AR: {
-        full: "Arkansas",
+        name: "Arkansas",
         code: "05",
         abbr: "AR"
     },
     CA: {
-        full: "California",
+        name: "California",
         code: "06",
         abbr: "CA"
     },
     CO: {
-        full: "Colorado",
+        name: "Colorado",
         code: "08",
         abbr: "CO"
     },
     CT: {
-        full: "Connecticut",
+        name: "Connecticut",
         code: "09",
         abbr: "CT"
     },
     DE: {
-        full: "Delaware",
+        name: "Delaware",
         code: "10",
         abbr: "DE"
     },
     FL: {
-        full: "Florida",
+        name: "Florida",
         code: "12",
         abbr: "FL"
     },
     GA: {
-        full: "Georgia",
+        name: "Georgia",
         code: "13",
         abbr: "GA"
     },
     HI: {
-        full: "Hawaii",
+        name: "Hawaii",
         code: "15",
         abbr: "HI"
     },
     ID: {
-        full: "Idaho",
+        name: "Idaho",
         code: "16",
         abbr: "ID"
     },
     IL: {
-        full: "Illinois",
+        name: "Illinois",
         code: "17",
         abbr: "IL"
     },
     IN: {
-        full: "Indiana",
+        name: "Indiana",
         code: "18",
         abbr: "IN"
     },
     IA: {
-        full: "Iowa",
+        name: "Iowa",
         code: "19",
         abbr: "IA"
     },
     KS: {
-        full: "Kansas",
+        name: "Kansas",
         code: "20",
         abbr: "KS"
     },
     KY: {
-        full: "Kentucky",
+        name: "Kentucky",
         code: "21",
         abbr: "KY"
     },
     LA: {
-        full: "Louisiana",
+        name: "Louisiana",
         code: "22",
         abbr: "LA"
     },
     ME: {
-        full: "Maine",
+        name: "Maine",
         code: "23",
         abbr: "ME"
     },
     MD: {
-        full: "Maryland",
+        name: "Maryland",
         code: "24",
         abbr: "MD"
     },
     MA: {
-        full: "Massachusetts",
+        name: "Massachusetts",
         code: "25",
         abbr: "MA"
     },
     MI: {
-        full: "Michigan",
+        name: "Michigan",
         code: "26",
         abbr: "MI"
     },
     MN: {
-        full: "Minnesota",
+        name: "Minnesota",
         code: "27",
         abbr: "MN"
     },
     MS: {
-        full: "Mississippi",
+        name: "Mississippi",
         code: "28",
         abbr: "MS"
     },
     MO: {
-        full: "Missouri",
+        name: "Missouri",
         code: "29",
         abbr: "MO"
     },
     MT: {
-        full: "Montana",
+        name: "Montana",
         code: "30",
         abbr: "MT"
     },
     NE: {
-        full: "Nebraska",
+        name: "Nebraska",
         code: "31",
         abbr: "NE"
     },
     NV: {
-        full: "Nevada",
+        name: "Nevada",
         code: "32",
         abbr: "NV"
     },
     NH: {
-        full: "New Hampshire",
+        name: "New Hampshire",
         code: "33",
         abbr: "NH"
     },
     NJ: {
-        full: "New Jersey",
+        name: "New Jersey",
         code: "34",
         abbr: "NJ"
     },
     NM: {
-        full: "New Mexico",
+        name: "New Mexico",
         code: "35",
         abbr: "NM"
     },
     NY: {
-        full: "New York",
+        name: "New York",
         code: "36",
         abbr: "NY"
     },
     NC: {
-        full: "North Carolina",
+        name: "North Carolina",
         code: "37",
         abbr: "NC"
     },
     ND: {
-        full: "North Dakota",
+        name: "North Dakota",
         code: "38",
         abbr: "ND"
     },
     OH: {
-        full: "Ohio",
+        name: "Ohio",
         code: "39",
         abbr: "OH"
     },
     OK: {
-        full: "Oklahoma",
+        name: "Oklahoma",
         code: "40",
         abbr: "OK"
     },
     OR: {
-        full: "Oregon",
+        name: "Oregon",
         code: "41",
         abbr: "OR"
     },
     PA: {
-        full: "Pennsylvania",
+        name: "Pennsylvania",
         code: "42",
         abbr: "PA"
     },
     RI: {
-        full: "Rhode Island",
+        name: "Rhode Island",
         code: "44",
         abbr: "RI"
     },
     SC: {
-        full: "South Carolina",
+        name: "South Carolina",
         code: "45",
         abbr: "SC"
     },
     SD: {
-        full: "South Dakota",
+        name: "South Dakota",
         code: "46",
         abbr: "SD"
     },
     TN: {
-        full: "Tennessee",
+        name: "Tennessee",
         code: "47",
         abbr: "TN"
     },
     TX: {
-        full: "Texas",
+        name: "Texas",
         code: "48",
         abbr: "TX"
     },
     UT: {
-        full: "Utah",
+        name: "Utah",
         code: "49",
         abbr: "UT"
     },
     VT: {
-        full: "Vermont",
+        name: "Vermont",
         code: "50",
         abbr: "VT"
     },
     VA: {
-        full: "Virginia",
+        name: "Virginia",
         code: "51",
         abbr: "VA"
     },
     WA: {
-        full: "Washington",
+        name: "Washington",
         code: "53",
         abbr: "WA"
     },
     WV: {
-        full: "West Virginia",
+        name: "West Virginia",
         code: "54",
         abbr: "WV"
     },
     WI: {
-        full: "Wisconsin",
+        name: "Wisconsin",
         code: "55",
         abbr: "WI"
     },
     WY: {
-        full: "Wyoming",
+        name: "Wyoming",
         code: "56",
         abbr: "WY"
     },
     DC: {
-        full: "District of Columbia",
+        name: "District of Columbia",
         code: "11",
         abbr: "DC"
     },
     PR: {
-        full: "Puerto Rico",
+        name: "Puerto Rico",
         code: "72",
         abbr: "PR"
     }
@@ -326,4 +379,8 @@ export const US_STATES_DICT: StateDict = {
 
 export function findStateByCode(code: string): UsState | undefined {
     return Object.values(US_STATES_DICT).find((state) => state.code === code);
+}
+
+export function findStateByName(name: string): UsState | undefined {
+    return Object.values(US_STATES_DICT).find((state) => state.name === name);
 }
