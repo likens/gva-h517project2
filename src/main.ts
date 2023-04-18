@@ -540,6 +540,7 @@ const setupDataSource = (dataSource: string) => {
 								}
 							}
 							entity.polygon.material = updateMaterial(entity, color);
+							console.log(incidents);
 							// entity.polygon.outline = new ConstantProperty(false);
 							// entity.polygon.extrudedHeight = new ConstantProperty(incidents ? incidents * multiplier : undefined);
 						}
