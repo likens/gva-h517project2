@@ -8,17 +8,16 @@
 	<body>
 
 		<div class="master flex w-screen h-screen">
-			<div id="sidebar" class="w-1/4 h-full grid items-start self-start bg-slate-800 border-slate-600 border-solid border-r text-white">
-				<div id="geo" class="grid">
-					<button class="uppercase px-4 py-2 font-bold hover:bg-slate-600" type="button" data-source="us_st.json">States</button>
-					<button class="uppercase px-4 py-2 font-bold hover:bg-slate-600" type="button" data-source="us_cny.json">Counties</button>
-					<button class="uppercase px-4 py-2 font-bold hover:bg-slate-600" type="button" data-source="us_cd.json">Congressional Districts</button>
-					<button class="uppercase px-4 py-2 font-bold hover:bg-slate-600" type="button" data-source="us_cty">Cities & Towns</button>
-					<button class="uppercase px-4 py-2 font-bold hover:bg-slate-600" type="button" data-source="">By Coordinates</button>
+			<div id="topbar" class="absolute w-full grid items-start self-start bg-slate-800 border-slate-600 border-solid border-b text-white z-40 font-bold uppercase text-3xl py-3 px-3">
+				<div id="title">Gun Violence</div>
+				<div id="breadcrumb" class="flex gap-3">
+					<button id="usa">USA</button>
+					<button id="state"></button>
+					<button id="county"></button>
 				</div>
 			</div>
 			<div id="cesium" class="!relative w-full h-full z-10 overflow-hidden">
-				<div id="tooltip" class="absolute top-0 left-0 bg-slate-800 text-white border-slate-600 border-solid border font-bold py-2 px-4 z-50"></div>
+				<div id="tooltip" class="absolute top-0 left-0 bg-slate-800 text-white border-slate-600 border-solid border font-bold py-2 px-4 z-20"></div>
 			</div>
 		</div>
 

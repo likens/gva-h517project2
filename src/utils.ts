@@ -51,59 +51,6 @@ export enum IncidentParticipantGender {
 export const STR_FEMALE = IncidentParticipantGender.Female;
 export const STR_MALE = IncidentParticipantGender.Male;
 
-export type IncidentStats = {
-    count: number,
-    killed: number,
-    injured: number,
-    list: string[],
-    gender: {
-        [key in IncidentParticipantGender]: number
-    }
-    ageGroup: {
-        [key in IncidentParticipantAgeGroup]: number
-    }
-}
-
-export class IncidentState {
-    name: string;
-    abbr: string;
-    incidents: IncidentStats;
-    counties: IncidentCounty[];
-    constructor(name: string, abbr: string, incidents: IncidentStats, counties: IncidentCounty[]) {
-        this.name = name;
-        this.abbr = abbr;
-        this.incidents = incidents;
-        this.counties = counties;
-    }
-}
-
-export type IncidentCounty = {
-    name: string,
-    incidents: IncidentStats,
-    cities: IncidentCities[]
-}
-
-export type IncidentCities = {
-    name: string,
-    longitude: string,
-    latitude: string,
-    incidents: IncidentStats,
-    locations: IncidentLocations[]
-}
-
-export type IncidentLocations = {
-    longitude: string,
-    latitude: string,
-    incidents: IncidentStats
-}
-
-export class Bucket {
-    state: IncidentState;
-    constructor(state: IncidentState) {
-        this.state = state;
-    }
-}
-
 interface UsState {
     name: string;
     code: string;
@@ -383,4 +330,8 @@ export function findStateByCode(code: string): UsState | undefined {
 
 export function findStateByName(name: string): UsState | undefined {
     return Object.values(US_STATES_DICT).find((state) => state.name === name);
+}
+
+export function findStateByAbbr(abbr: string): UsState | undefined {
+    return Object.values(US_STATES_DICT).find((state) => state.abbr === abbr);
 }
