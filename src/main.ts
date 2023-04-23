@@ -97,6 +97,8 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 				}
 			})
 
+			console.log(mapActiveCounty);
+
 			countyNav.innerHTML = "";
 
 		}
@@ -117,151 +119,7 @@ const setupDataMaps = (data: any) => {
 
 		setupAllData(d)
 
-		// let state = d.st ? d.st : "NOSTATE";
-		// let county = d.cny ? formatCounty(d.cny) : "NOCOUNTY";
-		// let cd = d.cd?.length < 2 ? `0${d.cd}` : d.cd ? d.cd : "NOCD";
-		// let city = d.cty ? d.cty : "NOCITY";
-		// let lng = d.lng;
-		// let lat = d.lat;
-
-		// // if (!state) { console.log("NO STATE FOUND", d)} 
-		// // if (!county) { console.log("NO COUNTY FOUND", d)}
-		// // if (!cd) { console.log("NO CD FOUND", d)}
-		// // if (!city) { console.log("NO CITY FOUND", d)}
-		
-		// addToGeoMap(state, US_ST_MAP);
-		// addToGeoMap(`${county}_${state}`, US_CNY_MAP);
-		// addToGeoMap(`${cd}_${state}`, US_CD_MAP);
-		// addToGeoMap(`${city}_${county}_${state}`, US_CTY_MAP, {location: `${lng},${lat}`});
-		// addToGeoMap(`${lng},${lat}`, US_ALL_MAP, {location: `${lng},${lat}`});
-
-		// const updateGeoGender = (key: string, type: string, map: any) => {
-		// 	map.get(key).incidents.gender[type] = map.get(key).incidents.gender[type] + 1;
-		// }
-		// const updateGeoAgeGroup = (key: string, type: string, map: any) => {
-		// 	map.get(key).incidents.ageGroup[type] = map.get(key).incidents.ageGroup[type] + 1;
-		// }
-		// const updateGeoKilled = (key: string, map: any) => {
-		// 	map.get(key).incidents._killed = map.get(key).incidents._killed + 1;
-		// }
-		// const updateGeoInjured = (key: string, map: any) => {
-		// 	map.get(key).incidents._injured = map.get(key).incidents._injured + 1;
-		// }
-
-		// if (Number(d.nkill) > 0) {
-		// 	updateGeoKilled(state, US_ST_MAP);
-		// }
-
-		// if (Number(d.ninj) > 0) {
-		// 	updateGeoInjured(state, US_ST_MAP);
-		// }
-
-		// if (d.genders) {
-		// 	d.genders.split(delimPipe).forEach(g => {
-		// 		if (g.includes(STR_FEMALE)) {
-		// 			genderMap.set(STR_FEMALE, genderMap.get(STR_FEMALE)! + 1);
-		// 			updateGeoGender(state, STR_FEMALE, US_ST_MAP);
-		// 		} else {
-		// 			genderMap.set(STR_MALE, genderMap.get(STR_MALE)! + 1);
-		// 			updateGeoGender(state, STR_MALE, US_ST_MAP);
-		// 		}
-		// 	})
-		// }
-
-		// if (d.agroups) {
-		// 	d.agroups.split(delimPipe).forEach(a => {
-		// 		if (a.includes(STR_ADULT)) {
-		// 			ageGroupsMap.set(STR_ADULT, ageGroupsMap.get(STR_ADULT)! + 1);
-		// 			updateGeoAgeGroup(state, STR_ADULT, US_ST_MAP);
-		// 		} else if (a.includes(STR_TEEN)) {
-		// 			ageGroupsMap.set(STR_TEEN, ageGroupsMap.get(STR_TEEN)! + 1);
-		// 			updateGeoAgeGroup(state, STR_TEEN, US_ST_MAP);
-		// 		} else if (a.includes(STR_CHILD)) {
-		// 			ageGroupsMap.set(STR_CHILD, ageGroupsMap.get(STR_CHILD)! + 1);
-		// 			updateGeoAgeGroup(state, STR_CHILD, US_ST_MAP);
-		// 		}
-		// 	})
-		// }
-
-		// if (d.ages) {
-		// 	d.ages.split(delimPipe).forEach(a => {
-		// 		let age = a.slice(a.indexOf(delimColon) + 2);
-		// 		age.length === 1 ? age = `0${age}` : undefined;
-		// 		if (agesMap.has(age)) {
-		// 			agesMap.set(age, agesMap.get(age) + 1);
-		// 		} else {
-		// 			agesMap.set(age, 1);
-		// 		}
-		// 	})
-		// }
-
-		// if (d.attr) {
-		// 	d.attr.split(delimPipe).forEach(attr => {
-		// 		if (attributesMap.has(attr)) {
-		// 			attributesMap.set(attr, attributesMap.get(attr) + 1);
-		// 		} else {
-		// 			attributesMap.set(attr, 1);
-		// 		}
-		// 	})
-		// }
-
 	})
-
-	// const color1 = {r: 247, g: 89, b: 48};
-	// const color2 = {r: 255, g: 243, b: 240};
-	// // const color1 = {r: 89, g: 38, b: 77};
-	// // const color2 = {r: 251, g: 248, b: 251};
-
-	// let counter = 0;
-	// const stColors = generateColorScale(US_ST_MAP.size, color1, color2);
-	// US_ST_MAP = new Map(Array.from(US_ST_MAP).sort((a, b) => b[1].incidents.count - a[1].incidents.count));
-	// US_ST_MAP.forEach((value: any, key: any, map: any) => {
-	// 	const obj = {
-	// 		...value,
-	// 		color: Color.fromCssColorString(stColors[counter])
-	// 	}
-	// 	map.set(key, obj);
-	// 	counter++;
-	// });
-	// counter = 0;
-	// const cnyColors = generateColorScale(US_CNY_MAP.size, color1, color2);
-	// US_CNY_MAP = new Map(Array.from(US_CNY_MAP).sort((a, b) => b[1].incidents.count - a[1].incidents.count));
-	// US_CNY_MAP.forEach((value: any, key: any, map: any) => {
-	// 	const obj = {
-	// 		...value,
-	// 		color: Color.fromCssColorString(cnyColors[counter])
-	// 	}
-	// 	map.set(key, obj);
-	// 	counter++;
-	// });
-	// counter = 0;
-	// const cdColors = generateColorScale(US_CD_MAP.size, color1, color2);
-	// US_CD_MAP = new Map(Array.from(US_CD_MAP).sort((a, b) => b[1].incidents.count - a[1].incidents.count));
-	// US_CD_MAP.forEach((value: any, key: any, map: any) => {
-	// 	const obj = {
-	// 		...value,
-	// 		color: Color.fromCssColorString(cdColors[counter])
-	// 	}
-	// 	map.set(key, obj);
-	// 	counter++;
-	// });
-	
-	// US_CTY_MAP = new Map(Array.from(US_CTY_MAP.entries()).sort());
-	// US_ALL_MAP = new Map(Array.from(US_ALL_MAP.entries()).sort());
-
-	// console.log(US_ST_MAP);
-	// console.log(US_CNY_MAP);
-	// console.log(US_CD_MAP);
-	// console.log(US_CTY_MAP);
-	// console.log(US_ALL_MAP);
-
-	// agesMap = new Map(Array.from(agesMap.entries()).sort());
-	// attributesMap = new Map(Array.from(attributesMap.entries()).sort());
-
-	// console.log(genderMap);
-	// console.log(ageGroupsMap);
-	// console.log(agesMap);
-	// console.log(attributesMap);
 
 	console.log(dataMap);
 }
@@ -269,19 +127,6 @@ const setupDataMaps = (data: any) => {
 const setupAllData = (incident: Incident) => {
 
 	let key = incident.st;
-
-	// const updateGeoGender = (key: string, type: string, map: any) => {
-	// 	
-	// }
-	// const updateGeoAgeGroup = (key: string, type: string, map: any) => {
-	// 	map.get(key).incidents.ageGroup[type] = map.get(key).incidents.ageGroup[type] + 1;
-	// }
-	// const updateGeoKilled = (key: string, map: any) => {
-	// 	map.get(key).incidents._killed = map.get(key).incidents._killed + 1;
-	// }
-	// const updateGeoInjured = (key: string, map: any) => {
-	// 	map.get(key).incidents._injured = map.get(key).incidents._injured + 1;
-	// }
 
 	if (key) {
 		if (dataMap.has(key)) {
@@ -751,6 +596,30 @@ const setupDataSources = () => {
 		// console.log(coordEntities);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // source.entities.values.forEach((entity: any) => {
 	// 	console.log(entity);
 	// 	const type = entity.properties.TYPE.getValue();
@@ -832,3 +701,168 @@ const setupDataSources = () => {
 // 		})
 // 	}
 // }
+
+
+
+
+
+
+	// const updateGeoGender = (key: string, type: string, map: any) => {
+	// 	
+	// }
+	// const updateGeoAgeGroup = (key: string, type: string, map: any) => {
+	// 	map.get(key).incidents.ageGroup[type] = map.get(key).incidents.ageGroup[type] + 1;
+	// }
+	// const updateGeoKilled = (key: string, map: any) => {
+	// 	map.get(key).incidents._killed = map.get(key).incidents._killed + 1;
+	// }
+	// const updateGeoInjured = (key: string, map: any) => {
+	// 	map.get(key).incidents._injured = map.get(key).incidents._injured + 1;
+	// }
+
+
+
+		// let state = d.st ? d.st : "NOSTATE";
+		// let county = d.cny ? formatCounty(d.cny) : "NOCOUNTY";
+		// let cd = d.cd?.length < 2 ? `0${d.cd}` : d.cd ? d.cd : "NOCD";
+		// let city = d.cty ? d.cty : "NOCITY";
+		// let lng = d.lng;
+		// let lat = d.lat;
+
+		// // if (!state) { console.log("NO STATE FOUND", d)} 
+		// // if (!county) { console.log("NO COUNTY FOUND", d)}
+		// // if (!cd) { console.log("NO CD FOUND", d)}
+		// // if (!city) { console.log("NO CITY FOUND", d)}
+		
+		// addToGeoMap(state, US_ST_MAP);
+		// addToGeoMap(`${county}_${state}`, US_CNY_MAP);
+		// addToGeoMap(`${cd}_${state}`, US_CD_MAP);
+		// addToGeoMap(`${city}_${county}_${state}`, US_CTY_MAP, {location: `${lng},${lat}`});
+		// addToGeoMap(`${lng},${lat}`, US_ALL_MAP, {location: `${lng},${lat}`});
+
+		// const updateGeoGender = (key: string, type: string, map: any) => {
+		// 	map.get(key).incidents.gender[type] = map.get(key).incidents.gender[type] + 1;
+		// }
+		// const updateGeoAgeGroup = (key: string, type: string, map: any) => {
+		// 	map.get(key).incidents.ageGroup[type] = map.get(key).incidents.ageGroup[type] + 1;
+		// }
+		// const updateGeoKilled = (key: string, map: any) => {
+		// 	map.get(key).incidents._killed = map.get(key).incidents._killed + 1;
+		// }
+		// const updateGeoInjured = (key: string, map: any) => {
+		// 	map.get(key).incidents._injured = map.get(key).incidents._injured + 1;
+		// }
+
+		// if (Number(d.nkill) > 0) {
+		// 	updateGeoKilled(state, US_ST_MAP);
+		// }
+
+		// if (Number(d.ninj) > 0) {
+		// 	updateGeoInjured(state, US_ST_MAP);
+		// }
+
+		// if (d.genders) {
+		// 	d.genders.split(delimPipe).forEach(g => {
+		// 		if (g.includes(STR_FEMALE)) {
+		// 			genderMap.set(STR_FEMALE, genderMap.get(STR_FEMALE)! + 1);
+		// 			updateGeoGender(state, STR_FEMALE, US_ST_MAP);
+		// 		} else {
+		// 			genderMap.set(STR_MALE, genderMap.get(STR_MALE)! + 1);
+		// 			updateGeoGender(state, STR_MALE, US_ST_MAP);
+		// 		}
+		// 	})
+		// }
+
+		// if (d.agroups) {
+		// 	d.agroups.split(delimPipe).forEach(a => {
+		// 		if (a.includes(STR_ADULT)) {
+		// 			ageGroupsMap.set(STR_ADULT, ageGroupsMap.get(STR_ADULT)! + 1);
+		// 			updateGeoAgeGroup(state, STR_ADULT, US_ST_MAP);
+		// 		} else if (a.includes(STR_TEEN)) {
+		// 			ageGroupsMap.set(STR_TEEN, ageGroupsMap.get(STR_TEEN)! + 1);
+		// 			updateGeoAgeGroup(state, STR_TEEN, US_ST_MAP);
+		// 		} else if (a.includes(STR_CHILD)) {
+		// 			ageGroupsMap.set(STR_CHILD, ageGroupsMap.get(STR_CHILD)! + 1);
+		// 			updateGeoAgeGroup(state, STR_CHILD, US_ST_MAP);
+		// 		}
+		// 	})
+		// }
+
+		// if (d.ages) {
+		// 	d.ages.split(delimPipe).forEach(a => {
+		// 		let age = a.slice(a.indexOf(delimColon) + 2);
+		// 		age.length === 1 ? age = `0${age}` : undefined;
+		// 		if (agesMap.has(age)) {
+		// 			agesMap.set(age, agesMap.get(age) + 1);
+		// 		} else {
+		// 			agesMap.set(age, 1);
+		// 		}
+		// 	})
+		// }
+
+		// if (d.attr) {
+		// 	d.attr.split(delimPipe).forEach(attr => {
+		// 		if (attributesMap.has(attr)) {
+		// 			attributesMap.set(attr, attributesMap.get(attr) + 1);
+		// 		} else {
+		// 			attributesMap.set(attr, 1);
+		// 		}
+		// 	})
+		// }
+
+
+	// const color1 = {r: 247, g: 89, b: 48};
+	// const color2 = {r: 255, g: 243, b: 240};
+	// // const color1 = {r: 89, g: 38, b: 77};
+	// // const color2 = {r: 251, g: 248, b: 251};
+
+	// let counter = 0;
+	// const stColors = generateColorScale(US_ST_MAP.size, color1, color2);
+	// US_ST_MAP = new Map(Array.from(US_ST_MAP).sort((a, b) => b[1].incidents.count - a[1].incidents.count));
+	// US_ST_MAP.forEach((value: any, key: any, map: any) => {
+	// 	const obj = {
+	// 		...value,
+	// 		color: Color.fromCssColorString(stColors[counter])
+	// 	}
+	// 	map.set(key, obj);
+	// 	counter++;
+	// });
+	// counter = 0;
+	// const cnyColors = generateColorScale(US_CNY_MAP.size, color1, color2);
+	// US_CNY_MAP = new Map(Array.from(US_CNY_MAP).sort((a, b) => b[1].incidents.count - a[1].incidents.count));
+	// US_CNY_MAP.forEach((value: any, key: any, map: any) => {
+	// 	const obj = {
+	// 		...value,
+	// 		color: Color.fromCssColorString(cnyColors[counter])
+	// 	}
+	// 	map.set(key, obj);
+	// 	counter++;
+	// });
+	// counter = 0;
+	// const cdColors = generateColorScale(US_CD_MAP.size, color1, color2);
+	// US_CD_MAP = new Map(Array.from(US_CD_MAP).sort((a, b) => b[1].incidents.count - a[1].incidents.count));
+	// US_CD_MAP.forEach((value: any, key: any, map: any) => {
+	// 	const obj = {
+	// 		...value,
+	// 		color: Color.fromCssColorString(cdColors[counter])
+	// 	}
+	// 	map.set(key, obj);
+	// 	counter++;
+	// });
+	
+	// US_CTY_MAP = new Map(Array.from(US_CTY_MAP.entries()).sort());
+	// US_ALL_MAP = new Map(Array.from(US_ALL_MAP.entries()).sort());
+
+	// console.log(US_ST_MAP);
+	// console.log(US_CNY_MAP);
+	// console.log(US_CD_MAP);
+	// console.log(US_CTY_MAP);
+	// console.log(US_ALL_MAP);
+
+	// agesMap = new Map(Array.from(agesMap.entries()).sort());
+	// attributesMap = new Map(Array.from(attributesMap.entries()).sort());
+
+	// console.log(genderMap);
+	// console.log(ageGroupsMap);
+	// console.log(agesMap);
+	// console.log(attributesMap);
