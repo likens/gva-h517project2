@@ -1,5 +1,5 @@
 import './style.css'
-import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, JulianDate, Cartesian3, BoundingSphere, HeadingPitchRange } from 'cesium'
+import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, JulianDate, BoundingSphere, HeadingPitchRange } from 'cesium'
 import { Incident, STR_FEMALE, STR_MALE, STR_ADULT, STR_CHILD, STR_TEEN, findStateByCode, US_STATES_DICT, HOME_CAMERA, findStateByAbbr } from "./utils";
 
 const globalAlpha = .5;
@@ -596,7 +596,9 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 				}
 			})
 		} else if (props.TYPE.getValue() === "CNY") {
-			countyNav.innerHTML = `${entityName}${props.LSAD.getValue() ? ` ${props.LSAD.getValue()}` : ``}`;
+			const countyFull = `${entityName}${props.LSAD.getValue() ? ` ${props.LSAD.getValue()}` : ``}`;
+			countyNav.innerHTML = countyFull;
+			mapActiveCounty = countyFull;
 			const code = findStateByAbbr(dataObj.state.abbr)!.code;
 			cnyEntities.forEach((entity: any) => {
 				const props = entity.properties;
