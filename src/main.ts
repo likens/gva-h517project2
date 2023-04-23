@@ -501,6 +501,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			countyNav.classList.remove("hidden");
 			countyNav.innerHTML = countyFull;
 			mapActiveCounty = countyFull;
+			console.log(mapActiveCounty, "was picked");
 
 			cnyEntities.forEach((entity: any) => {
 				const props = entity.properties;
