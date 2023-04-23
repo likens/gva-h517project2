@@ -4,20 +4,23 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>H517 Project 2</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Encode+Sans+Condensed:wght@400;700;900&display=swap" rel="stylesheet">
 	</head>
 	<body>
 
-		<div class="master flex w-screen h-screen">
-			<div id="topbar" class="absolute w-full grid items-start self-start bg-slate-800 border-slate-600 border-solid border-b text-white z-40 font-bold uppercase text-3xl py-3 px-3">
+		<div class="master flex w-screen h-screen bg-slate-900">
+			<div id="topbar" class="absolute w-full grid items-start self-start bg-slate-700 border-slate-500 border-solid border-b text-white z-40 font-bold uppercase text-3xl py-3 px-3">
 				<div id="title">Gun Violence</div>
 				<div id="breadcrumb" class="flex gap-3">
-					<button id="usa">USA</button>
-					<button id="state"></button>
-					<button id="county"></button>
+					<div id="usa" class="cursor-pointer hover:bg-slate-500">USA</div>
+					<div id="state" class="cursor-pointer hover:bg-slate-500"></div>
+					<div id="county" class="cursor-pointer hover:bg-slate-500"></div>
 				</div>
 			</div>
 			<div id="cesium" class="!relative w-full h-full z-10 overflow-hidden">
-				<div id="tooltip" class="absolute top-0 left-0 bg-slate-800 text-white border-slate-600 border-solid border font-bold py-2 px-4 z-20"></div>
+				<div id="tooltip" class="absolute top-0 left-0 bg-slate-700 text-white border-slate-500 border-solid border font-bold py-2 px-4 z-20"></div>
 			</div>
 		</div>
 

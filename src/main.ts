@@ -1,12 +1,16 @@
 import './style.css'
 import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, JulianDate, Cartesian3, BoundingSphere, HeadingPitchRange } from 'cesium'
-import { Incident, STR_FEMALE, STR_MALE, STR_ADULT, STR_CHILD, STR_TEEN, findStateByCode, US_STATES_DICT, findStateByAbbr } from "./utils";
+import { Incident, STR_FEMALE, STR_MALE, STR_ADULT, STR_CHILD, STR_TEEN, findStateByCode, US_STATES_DICT, HOME_CAMERA, findStateByAbbr } from "./utils";
 
-const globalAlpha = .25;
+const globalAlpha = .5;
 const highlightColor = Color.RED.withAlpha(globalAlpha);
 
 const delimPipe = "||";
 // const delimColon = "::";
+
+let mapView = "USA";
+let mapActiveState = "";
+let mapActiveCounty = "";
 
 let highlightedEntities: any[] = [];
 let cdEntities: any[] = [];
@@ -32,20 +36,72 @@ const handler = viewer.screenSpaceEventHandler;
 // let attributesMap = new Map();
 
 let htmlTooltip = document.getElementById("tooltip")!;
-const countryBtn = document.getElementById("usa");
-const stateBtn = document.getElementById("state");
-const countyBtn = document.getElementById("county");
+const usaNav: any = document.getElementById("usa");
+const stateNav: any = document.getElementById("state");
+const countyNav: any = document.getElementById("county");
 
 const dataMap = new Map();
 
 Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
-	countryBtn?.addEventListener('click', () => {
-		console.log("show country");
+	usaNav?.addEventListener('click', () => {
+
+		if (mapView !== "USA") {
+			console.log("show country");
+
+			mapView = "USA";
+			mapActiveState = "";
+			mapActiveCounty = "";
+
+			stEntities.forEach((entity: any) => {
+				entity.show = true;
+				entity.polygon.material = updateMaterial(entity, Color.WHITE.withAlpha(globalAlpha));
+			})
+			cnyEntities.forEach((entity: any) => {
+				entity.show = false;
+				entity.polygon.material = updateMaterial(entity, Color.WHITE.withAlpha(globalAlpha));
+			})
+
+			camera.flyTo(HOME_CAMERA);
+			stateNav.innerHTML = "";
+			countyNav.innerHTML = "";
+		}
 	})
-	stateBtn?.addEventListener('click', () => {
-		console.log("show state");
+	
+	stateNav?.addEventListener('click', () => {
+		if (mapView !== "ST") {
+			console.log("show state");
+
+			mapView = "ST";
+			mapActiveCounty = "";
+			
+			stEntities.forEach((entity: any) => {
+				if (findStateByCode(entity.properties.STATE.getValue())!.name === mapActiveState) {
+					entity.show = true;
+					const hierarchy = entity.polygon.hierarchy.getValue();
+					const boundingSphere = BoundingSphere.fromPoints(hierarchy.positions);
+					camera.flyToBoundingSphere(boundingSphere, {
+						duration: 1,
+						offset: new HeadingPitchRange(0, CesiumMath.toRadians(-90), boundingSphere.radius * 2.35),
+					});
+					entity.polygon.material = Color.TRANSPARENT;
+				} else {
+					entity.show = false;
+				}
+			})
+			cnyEntities.forEach((entity: any) => {
+				if (findStateByCode(entity.properties.STATE.getValue())!.name === mapActiveState) {
+					entity.show = true;
+					entity.polygon.material = updateMaterial(entity, Color.WHITE.withAlpha(globalAlpha));
+				} else {
+					entity.show = false;
+				}
+			})
+
+			countyNav.innerHTML = "";
+
+		}
 	})
-	countyBtn?.addEventListener('click', () => {
+	countyNav?.addEventListener('click', () => {
 		
 	})
 	setupDataMaps(data[0]);
@@ -360,19 +416,10 @@ const addToGeoMap = (key: string, map: Map<any, any>, optionals: any = undefined
 }
 
 const setupInitCamera = () => {
-	const homeCamera = {
-		destination: new Cartesian3(-1053594.94012635, -8153616.159871477, 6250954.07672872),
-		orientation: {
-			heading: 6.283185307179583,
-			pitch: -1.5691840981764815,
-			roll: 0
-		},
-		duration: 1
-	}
-	camera.flyTo(homeCamera);
+	camera.flyTo(HOME_CAMERA);
 	viewer.homeButton.viewModel.command.beforeExecute.addEventListener((info) => {
 		info.cancel = true;
-		viewer.camera.flyTo(homeCamera);
+		viewer.camera.flyTo(HOME_CAMERA);
 	});
 
 }
@@ -456,18 +503,18 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 				const incidents = countiesMap.get(key)?.counties.incidents._count;
 				const title = `${props.NAME} ${props.LSAD}, ${state?.abbr}`
 				if (!incidents) {
-					tooltipText = `${title} - 0 incidents`;
+					tooltipText = `${title}`;
 				} else {
-					tooltipText= `${title} - ${incidents} incidents`;
+					tooltipText= `${title}`;
 				}
 			} else if (props.CD) {
 				const key = `${props.CD}_${state?.abbr}`;
 				const incidents = cdMap.get(key)?.districts.incidents._count;
 				const title = `District ${props.CD}, ${state?.abbr}`
 				if (!incidents) {
-					tooltipText = `${title} - 0 incidents`;
+					tooltipText = `${title}`;
 				} else {
-					tooltipText = `${title} - ${incidents} incidents`;
+					tooltipText = `${title}`;
 				}
 			} else if (state) {
 				tooltipText = `
@@ -531,11 +578,14 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 		const props = pickedEntity.id.properties;
 		const entityName = props.NAME.getValue();
 		const dataObj = dataMap.get(findStateByCode(props.STATE.getValue())?.abbr);
+		mapView = props.TYPE.getValue();
 
 		if (props.TYPE.getValue() === "ST") {
-			for (var i = 0; i < stEntities.length; i++) {
-				if (stEntities[i].name !== pickedEntity.id.name) {
-					stEntities[i].show = false;
+			stateNav.innerHTML = entityName;
+			mapActiveState = entityName;
+			stEntities.forEach((entity: any) => {
+				if (entity.name !== pickedEntity.id.name) {
+					entity.show = false;
 				} else {
 					pickedEntity.id.polygon.material = Color.TRANSPARENT;
 					cnyEntities.forEach((entity: any) => {
@@ -544,15 +594,16 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 						}
 					})
 				}
-			}
+			})
 		} else if (props.TYPE.getValue() === "CNY") {
+			countyNav.innerHTML = `${entityName}${props.LSAD.getValue() ? ` ${props.LSAD.getValue()}` : ``}`;
 			const code = findStateByAbbr(dataObj.state.abbr)!.code;
 			cnyEntities.forEach((entity: any) => {
 				const props = entity.properties;
 				if (entityName !== props.NAME.getValue() || code !== props.STATE.getValue()) {
 					entity.show = false;
 				} else {
-					pickedEntity.id.polygon.material = Color.YELLOW.withAlpha(.1);
+					pickedEntity.id.polygon.material = Color.WHITE.withAlpha(globalAlpha);
 					// coordEntities
 					ctyEntities.forEach((entity: any) => {
 						if (formatCounty(entity.COUNTY) === entityName && entity.STATE === dataObj.state.abbr) {
@@ -567,7 +618,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 		const boundingSphere = BoundingSphere.fromPoints(hierarchy.positions);
 		camera.flyToBoundingSphere(boundingSphere, {
 			duration: 1,
-			offset: new HeadingPitchRange(0, CesiumMath.toRadians(-90), boundingSphere.radius * 2.35),
+			offset: new HeadingPitchRange(0, CesiumMath.toRadians(-90), boundingSphere.radius * 5),
 		});
 	}
 
@@ -609,62 +660,68 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 
 const setupDataSources = () => {
 
-		GeoJsonDataSource.load("us_st.json").then((source) => {
-			viewer.dataSources.add(source);
-			stEntities = source.entities.values;
-			for (var i = 0; i < stEntities.length; i++) {
-				stEntities[i].polygon.material = updateMaterial(stEntities[i], Color.YELLOW.withAlpha(globalAlpha));
-			}
-		})
+	GeoJsonDataSource.load("us_st.json").then((source) => {
+		viewer.dataSources.add(source);
+		stEntities = source.entities.values;
+		for (var i = 0; i < stEntities.length; i++) {
+			stEntities[i].polygon.material = updateMaterial(stEntities[i], Color.WHITE.withAlpha(globalAlpha));
+			stEntities[i].polygon.outline = true;
+			stEntities[i].polygon.outlineColor = Color.BLACK
+		}
+	})
 
-		GeoJsonDataSource.load("us_cd.json").then((source) => {
-			viewer.dataSources.add(source);
-			cdEntities = source.entities.values;
-			for (var i = 0; i < cdEntities.length; i++) {
-				cdEntities[i].show = false;
-				cdEntities[i].polygon.material = updateMaterial(cdEntities[i], Color.YELLOW.withAlpha(globalAlpha));
-			}
-		})
+	GeoJsonDataSource.load("us_cd.json").then((source) => {
+		viewer.dataSources.add(source);
+		cdEntities = source.entities.values;
+		for (var i = 0; i < cdEntities.length; i++) {
+			cdEntities[i].show = false;
+			cdEntities[i].polygon.material = updateMaterial(cdEntities[i], Color.WHITE.withAlpha(globalAlpha));
+			cdEntities[i].polygon.outline = true;
+			cdEntities[i].polygon.outlineColor = Color.BLACK
+		}
+	})
 
-		GeoJsonDataSource.load("us_cny.json").then((source) => {
-			viewer.dataSources.add(source);
-			cnyEntities = source.entities.values;
-			for (var i = 0; i < cnyEntities.length; i++) {
-				cnyEntities[i].show = false;
-				cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], Color.YELLOW.withAlpha(globalAlpha));
-			}
-		})
+	GeoJsonDataSource.load("us_cny.json").then((source) => {
+		viewer.dataSources.add(source);
+		cnyEntities = source.entities.values;
+		for (var i = 0; i < cnyEntities.length; i++) {
+			cnyEntities[i].show = false;
+			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], Color.WHITE.withAlpha(globalAlpha));
+			cnyEntities[i].polygon.outline = true;
+			cnyEntities[i].polygon.outlineColor = Color.BLACK
+		}
+	})
 
-		citiesMap.forEach((city, key) => {
-			const name = key.split("_");
-			const location = city.location.split(",");
-			const incidents = city.incidents._count;
-			const entity: any = viewer.entities.add({
-				show: false,
-				name: name[0],
-				position: Cartesian3.fromDegrees(Number(location[0]), Number(location[1]), 0),
-				point: {
-					pixelSize: 10,
-					color: Color.YELLOW
-				},
-				// ellipse: {
-				// 	semiMinorAxis: 2000,
-				// 	semiMajorAxis: 2000,
-				// 	heightReference: HeightReference.RELATIVE_TO_GROUND,
-				// 	material: Color.WHITE.withAlpha(globalAlpha),
-				// 	height: 0,
-				// 	extrudedHeight: incidents * 50
-				// },
-			});
-			entity.addProperty("STATE");
-			entity.addProperty("COUNTY");
-			entity.addProperty("CITY");
-			entity.STATE = name[2];
-			entity.COUNTY = name[1];
-			entity.CITY = name[0];
-			entity.INCIDENTS = incidents;
-			ctyEntities.push(entity);
-		})
+		// citiesMap.forEach((city, key) => {
+		// 	const name = key.split("_");
+		// 	const location = city.location.split(",");
+		// 	const incidents = city.incidents._count;
+		// 	const entity: any = viewer.entities.add({
+		// 		show: false,
+		// 		name: name[0],
+		// 		position: Cartesian3.fromDegrees(Number(location[0]), Number(location[1]), 0),
+		// 		point: {
+		// 			pixelSize: 10,
+		// 			color: Color.YELLOW
+		// 		},
+		// 		// ellipse: {
+		// 		// 	semiMinorAxis: 2000,
+		// 		// 	semiMajorAxis: 2000,
+		// 		// 	heightReference: HeightReference.RELATIVE_TO_GROUND,
+		// 		// 	material: Color.WHITE.withAlpha(globalAlpha),
+		// 		// 	height: 0,
+		// 		// 	extrudedHeight: incidents * 50
+		// 		// },
+		// 	});
+		// 	entity.addProperty("STATE");
+		// 	entity.addProperty("COUNTY");
+		// 	entity.addProperty("CITY");
+		// 	entity.STATE = name[2];
+		// 	entity.COUNTY = name[1];
+		// 	entity.CITY = name[0];
+		// 	entity.INCIDENTS = incidents;
+		// 	ctyEntities.push(entity);
+		// })
 
 		// coordsMap.forEach((coord, key) => {
 		// 	const name = key.split("_");

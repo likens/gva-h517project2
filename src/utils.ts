@@ -1,3 +1,15 @@
+import { Cartesian3 } from "cesium";
+
+export const HOME_CAMERA = {
+	destination: new Cartesian3(-1053594.94012635, -8153616.159871477, 6250954.07672872),
+	orientation: {
+		heading: 6.283185307179583,
+		pitch: -1.5691840981764815,
+		roll: 0
+	},
+	duration: 1
+}
+
 export type Incident = {
     id: string,
     date: string,
