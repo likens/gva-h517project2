@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "cesium": "^1.103.0",
+    "highcharts": "^10.3.3",
     "vite-plugin-cesium": "^1.2.22"
   }
 }

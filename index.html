@@ -10,18 +10,28 @@
 	</head>
 	<body>
 
-		<div class="master flex w-screen h-screen bg-slate-900">
-			<div id="topbar" class="absolute w-full grid items-start self-start bg-slate-700 border-slate-500 border-solid border-b text-white z-40 font-bold uppercase text-3xl py-3 px-3">
-				<div id="title">Gun Violence</div>
-				<div id="breadcrumb" class="flex gap-3">
-					<div id="usa" class="cursor-pointer hover:bg-slate-500">USA</div>
-					<div id="state" class="cursor-pointer hover:bg-slate-500"></div>
-					<div id="county" class="cursor-pointer hover:bg-slate-500"></div>
+		<div class="master grid w-screen h-screen bg-slate-900">
+
+			<div id="topbar" class="w-full grid items-start self-start bg-slate-700 text-white z-40 font-bold uppercase text-3xl py-3 px-3">
+				Gun Violence In America
+			</div>
+
+			<div class="flex bg-slate-700 text-white">
+
+				<div id="sidebar" class="w-96">
+					<div id="chartStack" class="w-full h-48"></div>
+				</div>
+
+				<div id="cesium" class="!relative w-full h-full z-10 overflow-hidden border-slate-500 border-solid border-t border-l">
+					<div id="breadcrumb" class="flex absolute top-0 left-0 z-20 bg-slate-900/75 font-bold">
+						<div id="usa" class="cursor-pointer hover:bg-slate-500 px-4 py-2">USA</div>
+						<div id="state" class="cursor-pointer hover:bg-slate-500 hidden px-4 py-2"></div>
+						<div id="county" class="hidden px-4 py-2"></div>
+					</div>
+					<div id="tooltip" class="absolute top-0 left-0 bg-slate-700 text-white border-slate-500 border-solid border font-bold py-2 px-4 z-20"></div>
 				</div>
 			</div>
-			<div id="cesium" class="!relative w-full h-full z-10 overflow-hidden">
-				<div id="tooltip" class="absolute top-0 left-0 bg-slate-700 text-white border-slate-500 border-solid border font-bold py-2 px-4 z-20"></div>
-			</div>
+			
 		</div>
 
 		<script type="module" src="/src/main.ts"></script>

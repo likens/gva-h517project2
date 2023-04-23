@@ -32,6 +32,10 @@ body {
 	bottom: 0;
 }
 
+#cesium .cesium-widget-credits {
+	display: none !important;
+}
+
 @media (prefers-color-scheme: light) {
 	:root {
 		color: #213547;
