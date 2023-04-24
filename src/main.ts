@@ -627,7 +627,10 @@ const setupBarChart = () => {
 	// @ts-ignore
 	Highcharts.chart('chartStack', {
 		chart: {
-			type: 'bar'
+			type: 'bar',
+			style: {
+				fontFamily: 'Encode Sans Condensed'
+			}
 		},
 		title: {
 			text: ''
@@ -691,7 +694,10 @@ const setupTimeChart = (data: Incident[]) => {
 	// @ts-ignore
 	Highcharts.chart('chartTime', {
 		chart: {
-			zoomType: 'x'
+			zoomType: 'x',
+			style: {
+				fontFamily: 'Encode Sans Condensed'
+			}
 		},
 		title: {
 			text: 'Incidents Over Time (2014-2016)',
