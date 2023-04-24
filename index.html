@@ -10,28 +10,34 @@
 	</head>
 	<body>
 
-		<div class="master grid w-screen h-screen bg-slate-900">
+		<div class="master grid grid-rows-[min-content_1fr] w-screen h-screen bg-slate-900">
 
 			<div id="topbar" class="w-full grid items-start self-start bg-slate-700 text-white z-40 font-bold uppercase text-3xl py-3 px-3">
 				Gun Violence In America
 			</div>
 
-			<div class="flex bg-slate-700 text-white">
+			<div class="grid grid-cols-[300px_1fr] grid-rows-[1fr_200px] bg-slate-700 text-white w-full">
 
-				<div id="sidebar" class="w-96">
-					<div id="chartStack" class="w-full h-48"></div>
+				<div id="sidebar" class="row-span-2">
+					<div id="chartStack" class="w-full h-[300px]"></div>
 				</div>
 
-				<div id="cesium" class="!relative w-full h-full z-10 overflow-hidden border-slate-500 border-solid border-t border-l">
-					<div id="breadcrumb" class="flex absolute top-0 left-0 z-20 bg-slate-900/75 font-bold">
-						<div id="usa" class="cursor-pointer hover:bg-slate-500 px-4 py-2">USA</div>
-						<div id="state" class="cursor-pointer hover:bg-slate-500 hidden px-4 py-2"></div>
-						<div id="county" class="hidden px-4 py-2"></div>
+				<div id="map" class="!relative w-full h-full z-10 overflow-hidden border-slate-500 border-solid border-t border-l border-b">
+					<div id="cesium">
+						<div id="breadcrumb" class="flex absolute top-0 left-0 z-20 bg-slate-900/75 font-bold">
+							<div id="usa" class="cursor-pointer hover:bg-slate-500 px-4 py-2">USA</div>
+							<div id="state" class="cursor-pointer hover:bg-slate-500 hidden px-4 py-2"></div>
+							<div id="county" class="hidden px-4 py-2"></div>
+						</div>
+						<div id="tooltip" class="absolute top-0 left-0 bg-slate-700 text-white border-slate-500 border-solid border font-bold py-2 px-4 z-20"></div>
 					</div>
-					<div id="tooltip" class="absolute top-0 left-0 bg-slate-700 text-white border-slate-500 border-solid border font-bold py-2 px-4 z-20"></div>
+				</div>
+
+				<div id="footbar" class="col-start-2">
+					<div id="chartTime" class="w-full h-[200px]"></div>
 				</div>
 			</div>
-			
+
 		</div>
 
 		<script type="module" src="/src/main.ts"></script>

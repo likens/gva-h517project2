@@ -105,52 +105,8 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 	setupInitCamera();
 	setupDataSources();
 
-	// @ts-ignore
-	Highcharts.chart('chartStack', {
-		chart: {
-			type: 'bar'
-		},
-		title: {
-			text: ''
-		},
-		xAxis: {
-			categories: [
-				IncidentParticipantAgeGroup.Adult,
-				IncidentParticipantAgeGroup.Teen,
-				IncidentParticipantAgeGroup.Child
-			]
-		},
-		yAxis: {
-			min: 0,
-			title: {
-				text: ''
-			}
-		},
-		legend: {
-			reversed: true
-		},
-		plotOptions: {
-			series: {
-				stacking: 'normal',
-				dataLabels: {
-					enabled: true
-				}
-			}
-		},
-		series: [
-			{
-				name: IncidentParticipantGender.Female,
-				color: '#F88FB3',
-				data: [5023, 3904, 459]
-			}, {
-				name: IncidentParticipantGender.Male,
-				color: '#AFDAF5',
-				data: [56347, 45673, 6000]
-			}
-		]
-		// options - see https://api.highcharts.com/highcharts
-	});
-
+	setupBarChart();
+	setupTimeChart(data[0]);
 
 })
 
@@ -378,7 +334,7 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 
 			const state = findStateByCode(props.STATE);
 
-			if (props.COUNTY && mapView !== "CNY") {
+			if (props.COUNTY) {
 				const key = `${props.NAME}_${state?.abbr}`;
 				const incidents = countiesMap.get(key)?.counties.incidents._count;
 				const title = `${props.NAME} ${props.LSAD}, ${state?.abbr}`
@@ -457,10 +413,13 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 		const entityName = props.NAME?.getValue();
 		const entityState = props.STATE?.getValue();
 		const entityLSAD = props.LSAD?.getValue();
+		const entityType = props.TYPE.getValue();
 		// const entityCD = props.CD?.getValue();
 		mapView = props.TYPE.getValue();
+		
+		console.log(entityType, "picked")
 
-		if (props.TYPE.getValue() === "ST") {
+		if (entityType === "ST") {
 
 			countyNav.classList.add("hidden");
 			countyNav.innerHTML = "";
@@ -495,7 +454,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 
 			clearIncidentEntities();
 
-		} else if (props.TYPE.getValue() === "CNY") {
+		} else if (entityType === "CNY") {
 
 			const countyFull = `${entityName}${entityLSAD ? ` ${entityLSAD}` : ``}`;
 			countyNav.classList.remove("hidden");
@@ -518,7 +477,15 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			pickedEntity.id.show = false;
 
 			const incidentData = rawData.filter((incident: Incident) => {
-				return incident.st === findStateByCode(props.STATE.getValue())?.abbr && incident.cny === countyFull
+				if (incident.st === findStateByCode(props.STATE.getValue())?.abbr) {
+					if (incident.cny === countyFull) {
+						return incident;
+					} else if (!incident.cny && incident.cty === entityName) {
+						return incident;
+					}
+				}
+				
+				return;
 			});
 
 			clearIncidentEntities();
@@ -654,6 +621,128 @@ const flyToPolygon = (polygon: any) => {
 
 
 
+
+
+const setupBarChart = () => {
+	// @ts-ignore
+	Highcharts.chart('chartStack', {
+		chart: {
+			type: 'bar'
+		},
+		title: {
+			text: ''
+		},
+		xAxis: {
+			categories: [
+				IncidentParticipantAgeGroup.Adult,
+				IncidentParticipantAgeGroup.Teen,
+				IncidentParticipantAgeGroup.Child
+			]
+		},
+		yAxis: {
+			min: 0,
+			title: {
+				text: ''
+			}
+		},
+		legend: {
+			reversed: true
+		},
+		plotOptions: {
+			series: {
+				stacking: 'normal',
+				dataLabels: {
+					enabled: true
+				}
+			}
+		},
+		series: [
+			{
+				name: IncidentParticipantGender.Female,
+				color: '#F88FB3',
+				data: [5023, 3904, 459]
+			},
+			{
+				name: IncidentParticipantGender.Male,
+				color: '#AFDAF5',
+				data: [56347, 45673, 6000]
+			}
+		]
+		// options - see https://api.highcharts.com/highcharts
+	});
+}
+
+const setupTimeChart = (data: Incident[]) => {
+
+	const msMap = new Map();
+	data.forEach((d: Incident) => {
+		const dateSplit = d.date.split('/');
+		const dateObj = new Date(Number(dateSplit[2]), Number(dateSplit[0]) - 1, Number(dateSplit[1]));
+		const ms = dateObj.getTime();
+		if (msMap.has(ms)) {
+			msMap.set(ms, msMap.get(ms) + 1);
+		} else {
+			msMap.set(ms, 1);
+		}
+	});
+
+	const incidentsArray = Array.from(msMap, ([key, value]) => [key, value]);
+
+	// @ts-ignore
+	Highcharts.chart('chartTime', {
+		chart: {
+			zoomType: 'x'
+		},
+		title: {
+			text: 'Incidents Over Time (2014-2016)',
+			align: 'left'
+		},
+		xAxis: {
+			type: 'datetime'
+		},
+		yAxis: {
+			title: {
+				text: 'Number of Incidents'
+			}
+		},
+		legend: {
+			enabled: false
+		},
+		plotOptions: {
+			area: {
+				lineColor: Highcharts.color("#000").setOpacity(.5).get('rgba'),
+				fillColor: {
+					linearGradient: {
+						x1: 0,
+						y1: 0,
+						x2: 0,
+						y2: 1
+					},
+					stops: [
+						[0, "#000"],
+						[1, Highcharts.color("#000").setOpacity(0).get('rgba')]
+					]
+				},
+				marker: {
+					radius: 2
+				},
+				lineWidth: 1,
+				states: {
+					hover: {
+						lineWidth: 1
+					}
+				},
+				threshold: null
+			}
+		},
+
+		series: [{
+			type: 'area',
+			name: 'Incidents',
+			data: incidentsArray
+		}]
+	});
+}
 
 
 
