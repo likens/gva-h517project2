@@ -637,7 +637,7 @@ const addIncidentEntities = (data: Incident[]) => {
 			show: true,
 			position: Cartesian3.fromDegrees(Number(incident.lng), Number(incident.lat), 0),
 			point: {
-				pixelSize: 2,
+				pixelSize: 4,
 				color: color
 			},
 			properties: props
@@ -650,7 +650,7 @@ const flyToPolygon = (polygon: any) => {
 	const boundingSphere = BoundingSphere.fromPoints(polygon.hierarchy.getValue().positions);
 	camera.flyToBoundingSphere(boundingSphere, {
 		duration: 1,
-		offset: new HeadingPitchRange(0, CesiumMath.toRadians(-75), boundingSphere.radius * 2),
+		offset: new HeadingPitchRange(0, CesiumMath.toRadians(-75), boundingSphere.radius * 3),
 	});
 }
 
