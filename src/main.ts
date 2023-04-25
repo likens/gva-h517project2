@@ -1,5 +1,5 @@
 import './style.css'
-import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, JulianDate, BoundingSphere, HeadingPitchRange, Cartesian3, PropertyBag } from 'cesium'
+import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, JulianDate, BoundingSphere, HeadingPitchRange, Cartesian3, PropertyBag, MapboxStyleImageryProvider } from 'cesium'
 import * as Highcharts from 'highcharts';
 import HC_more from "highcharts/highcharts-more";
 HC_more(Highcharts);
@@ -31,6 +31,8 @@ let cdMap = new Map();
 let citiesMap = new Map();
 let coordsMap = new Map();
 
+const MAPBOX_API_KEY: any = import.meta.env.VITE_MAPBOX_API_KEY;
+
 const viewer = new Viewer("cesium", {
 	fullscreenButton: false,
 	homeButton: false,
@@ -42,7 +44,11 @@ const viewer = new Viewer("cesium", {
 	geocoder: false,
 	infoBox: false,
 	selectionIndicator: false,
-	sceneModePicker: false
+	sceneModePicker: false,
+	imageryProvider: new MapboxStyleImageryProvider({
+		styleId: "dark-v11",
+		accessToken: MAPBOX_API_KEY
+	})
 });
 const scene = viewer.scene;
 const camera = viewer.camera;
@@ -389,8 +395,10 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 		htmlTooltip.style.transform = `translate(${xPosition + 25}px, ${yPosition + 25}px)`;
 		htmlTooltip.classList.add('block');
 		htmlTooltip.classList.remove('hidden');
+		document.getElementById("cesium")?.classList.add("cursor-pointer");
 	} else {
 		hideTooltip();
+		document.getElementById("cesium")?.classList.remove("cursor-pointer");
 	}
 
 }, ScreenSpaceEventType.MOUSE_MOVE);
@@ -566,7 +574,6 @@ const setupDataSources = () => {
 			stEntities[i].polygon.material = updateMaterial(stEntities[i], Color.WHITE.withAlpha(globalAlpha));
 			stEntities[i].polygon.outline = true;
 			stEntities[i].polygon.outlineColor = Color.BLACK;
-			stEntities[i].polygon.outlineWidth = 3;
 		}
 	})
 
@@ -590,7 +597,6 @@ const setupDataSources = () => {
 			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], Color.YELLOW.withAlpha(globalAlpha));
 			cnyEntities[i].polygon.outline = true;
 			cnyEntities[i].polygon.outlineColor = Color.BLACK;
-			cnyEntities[i].polygon.outlineWidth = 3;
 		}
 	})
 }
@@ -619,18 +625,24 @@ const addIncidentEntities = (data: Incident[]) => {
 		props.addProperty("DATE", incident.date);
 		incident.nkill ? props.addProperty("KILLED", incident.nkill) : ``;
 		incident.ninj ? props.addProperty("INJURED", incident.ninj) : ``;
+		let color = Color.WHITE;
+		if (Number(incident.nkill) > 0) {
+			color = Color.RED;
+		} else if (Number(incident.ninj) > 0) {
+			color = Color.YELLOW;
+		} else {
+			color = Color.AQUAMARINE;
+		}
 		const entity: any = viewer.entities.add({
 			show: true,
 			position: Cartesian3.fromDegrees(Number(incident.lng), Number(incident.lat), 0),
 			point: {
-				pixelSize: 8,
-				color: Color.WHITE,
-				outlineColor: Color.BLACK,
-				outlineWidth: 2
+				pixelSize: 2,
+				color: color
 			},
 			properties: props
 		});
-		mapIncidentEntities.push(entity.id)
+		mapIncidentEntities.push(entity.id);
 	});
 }
 
@@ -652,7 +664,7 @@ const setupBarChart = () => {
 	// @ts-ignore
 	chartStack = Highcharts.chart('chartStack', {
 		chart: {
-			type: 'bar',
+			type: 'column',
 			style: {
 				fontFamily: 'Encode Sans Condensed'
 			}
