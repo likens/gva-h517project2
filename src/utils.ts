@@ -36,28 +36,33 @@ export type Incident = {
 export enum IncidentParticipantAgeGroup {
     Adult = "Adult 18+",
     Teen = "Teen 12-17",
-    Child = "Child 0-11"
+    Child = "Child 0-11",
+    Unknown = "Unknown"
 }
 
 export const STR_ADULT = IncidentParticipantAgeGroup.Adult;
 export const STR_TEEN = IncidentParticipantAgeGroup.Teen;
 export const STR_CHILD = IncidentParticipantAgeGroup.Child;
+export const STR_UNKNOWN = "Unknown";
 
-// enum IncidentParticipantStatus {
-//     Killed,
-//     Injured,
-//     Unharmed,
-//     Arrested
-// }
+export enum IncidentParticipantStatus {
+    Killed = "Killed",
+    Injured = "Injured",
+    Unharmed = "Unharmed",
+    Arrested = "Arrested",
+    Unknown = "Unknown"
+}
 
-// enum IncidentParticipantType {
-//     Victim,
-//     Subject_Suspect
-// }
+export enum IncidentParticipantType {
+    Victim = "Killed",
+    SubjectSuspect = "Injured",
+    Unknown = "Unknown"
+}
 
 export enum IncidentParticipantGender {
     Male = "Male",
-    Female = "Female"
+    Female = "Female",
+    Unknown = "Unknown"
 }
 
 export const STR_FEMALE = IncidentParticipantGender.Female;

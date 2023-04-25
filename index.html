@@ -3,23 +3,24 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>H517 Project 2</title>
+		<title>Project 2 - H517 - Spring 2023</title>
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Encode+Sans+Condensed:wght@400;700;900&display=swap" rel="stylesheet">
 	</head>
 	<body>
 
-		<div class="master grid grid-rows-[min-content_1fr] w-screen h-screen bg-slate-900">
+		<div class="master grid grid-rows-[min-content_1fr] w-screen h-screen bg-slate-900 overflow-hidden">
 
 			<div id="topbar" class="w-full grid items-start self-start bg-slate-700 text-white z-40 font-bold uppercase text-3xl py-3 px-3">
 				Gun Violence In America
 			</div>
 
-			<div class="grid grid-cols-[300px_1fr] grid-rows-[1fr_200px] bg-slate-700 text-white w-full">
+			<div class="grid grid-cols-[500px_1fr] grid-rows-[1fr_200px] bg-slate-700 text-white w-full overflow-auto">
 
-				<div id="sidebar" class="row-span-2">
+				<div id="sidebar" class="row-span-2 h-full overflow-auto">
 					<div id="chartStack" class="w-full h-[300px]"></div>
+					<div id="chartBubble" class="w-full h-[600px]"></div>
 				</div>
 
 				<div id="map" class="!relative w-full h-full z-10 overflow-hidden border-slate-500 border-solid border-t border-l border-b">

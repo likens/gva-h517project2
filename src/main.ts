@@ -1,19 +1,24 @@
 import './style.css'
 import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, JulianDate, BoundingSphere, HeadingPitchRange, Cartesian3, PropertyBag } from 'cesium'
 import * as Highcharts from 'highcharts';
-import { Incident, STR_FEMALE, STR_MALE, STR_ADULT, STR_CHILD, STR_TEEN, findStateByCode, US_STATES_DICT, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender } from "./utils";
+import HC_more from "highcharts/highcharts-more";
+HC_more(Highcharts);
+import { Incident, STR_FEMALE, STR_MALE, STR_ADULT, STR_CHILD, STR_TEEN, findStateByCode, US_STATES_DICT, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, findStateByAbbr } from "./utils";
 
 const globalAlpha = .25;
 const highlightColor = Color.RED.withAlpha(globalAlpha);
 
 const delimPipe = "||";
-// const delimColon = "::";
+const delimColon = "::";
 
 let mapView = "USA";
 let mapActiveState = "";
 let mapActiveCounty = "";
 
 const mapIncidentEntities: any[] = [];
+
+let chartStack: any;
+let chartTime: any;
 
 let highlightedEntities: any[] = [];
 let cdEntities: any[] = [];
@@ -54,7 +59,7 @@ const stateNav: any = document.getElementById("state");
 const countyNav: any = document.getElementById("county");
 
 const dataMap = new Map();
-let rawData: any[] = [];
+let allData: any[] = [];
 
 Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 
@@ -71,6 +76,8 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			stateNav.innerHTML = "";
 			countyNav.classList.add("hidden");
 			countyNav.innerHTML = "";
+			loadBarChartData(allData, `USA Incidents by Age Group and Gender`);
+			loadTimeChartData(allData, `USA Incidents Over Time (2014-2016)`);
 		}
 	})
 	
@@ -97,7 +104,12 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			})
 			countyNav.innerHTML = "";
 			countyNav.classList.add("hidden");
+			
+			const incidentData = allData.filter((incident: Incident) => incident.st === findStateByCode(mapActiveState)?.abbr);
+
 			clearIncidentEntities();
+			loadBarChartData(incidentData, `${stateNav.innerHTML} Incidents by Age Group and Gender`);
+			loadTimeChartData(incidentData, `${stateNav.innerHTML} Incidents Over Time (2014-2016)`);
 		}
 	})
 
@@ -105,13 +117,21 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 	setupInitCamera();
 	setupDataSources();
 
+	// init bar chart, load usa data
 	setupBarChart();
-	setupTimeChart(data[0]);
+	loadBarChartData(data[0], 'USA Incidents by Age Group and Gender');
+
+	// init time chart, load usa data
+	setupTimeChart();
+	loadTimeChartData(data[0], 'USA Incidents Over Time (2014-2016)')
+	
+	// init bubble chart
+	setupBubbleChart(data[0]);
 
 })
 
 const setupDataMaps = (data: any) => {
-	rawData = data;
+	allData = data;
 	data.forEach((d: Incident) => {
 		setupAllData(d)
 	})
@@ -427,8 +447,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			stateNav.innerHTML = entityName;
 			mapActiveState = entityState;
 
-			const incidentData = rawData.filter((incident: Incident) => incident.st === findStateByCode(props.STATE.getValue())?.abbr);
-			console.log(incidentData);
+			const incidentData = allData.filter((incident: Incident) => incident.st === findStateByCode(props.STATE.getValue())?.abbr);
 
 			stEntities.forEach((entity: any) => {
 				if (entity.name === pickedEntity.id.name) {
@@ -453,6 +472,8 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			})
 
 			clearIncidentEntities();
+			loadBarChartData(incidentData, `${entityName} Incidents by Age Group and Gender`);
+			loadTimeChartData(incidentData, `${entityName} Incidents Over Time (2014-2016)`);
 
 		} else if (entityType === "CNY") {
 
@@ -476,7 +497,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			// hide our picked county
 			pickedEntity.id.show = false;
 
-			const incidentData = rawData.filter((incident: Incident) => {
+			const incidentData = allData.filter((incident: Incident) => {
 				if (incident.st === findStateByCode(props.STATE.getValue())?.abbr) {
 					if (incident.cny === countyFull) {
 						return incident;
@@ -490,6 +511,9 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 
 			clearIncidentEntities();
 			addIncidentEntities(incidentData);
+			console.log(incidentData);
+			loadBarChartData(incidentData, `${countyFull} Incidents by Age Group and Gender`);
+			loadTimeChartData(incidentData, `${countyFull} Incidents Over Time (2014-2016)`);
 
 		}
 
@@ -623,9 +647,10 @@ const flyToPolygon = (polygon: any) => {
 
 
 
+
 const setupBarChart = () => {
 	// @ts-ignore
-	Highcharts.chart('chartStack', {
+	chartStack = Highcharts.chart('chartStack', {
 		chart: {
 			type: 'bar',
 			style: {
@@ -633,13 +658,15 @@ const setupBarChart = () => {
 			}
 		},
 		title: {
-			text: ''
+			text: '',
+			align: 'left'
 		},
 		xAxis: {
 			categories: [
 				IncidentParticipantAgeGroup.Adult,
 				IncidentParticipantAgeGroup.Teen,
-				IncidentParticipantAgeGroup.Child
+				IncidentParticipantAgeGroup.Child,
+				IncidentParticipantAgeGroup.Unknown
 			]
 		},
 		yAxis: {
@@ -660,39 +687,113 @@ const setupBarChart = () => {
 			}
 		},
 		series: [
-			{
-				name: IncidentParticipantGender.Female,
-				color: '#F88FB3',
-				data: [5023, 3904, 459]
-			},
-			{
-				name: IncidentParticipantGender.Male,
-				color: '#AFDAF5',
-				data: [56347, 45673, 6000]
-			}
+			{ name: IncidentParticipantGender.Unknown, color: '#bbb' },
+			{ name: IncidentParticipantGender.Female, color: '#F88FB3' },
+			{ name: IncidentParticipantGender.Male, color: '#AFDAF5' }
 		]
 		// options - see https://api.highcharts.com/highcharts
 	});
 }
 
-const setupTimeChart = (data: Incident[]) => {
+const loadBarChartData = (data: Incident[], title: string) => {
 
-	const msMap = new Map();
-	data.forEach((d: Incident) => {
-		const dateSplit = d.date.split('/');
-		const dateObj = new Date(Number(dateSplit[2]), Number(dateSplit[0]) - 1, Number(dateSplit[1]));
-		const ms = dateObj.getTime();
-		if (msMap.has(ms)) {
-			msMap.set(ms, msMap.get(ms) + 1);
-		} else {
-			msMap.set(ms, 1);
+	const chartData = data.map((d: Incident) => {
+		const obj: any = {
+			max: 1,
+			agroups: !d.agroups ? [STR_UNKNOWN] : d.agroups.split(delimPipe).map((x: any) => x.split(delimColon)[1]),
+			genders: !d.genders ? [STR_UNKNOWN] : d.genders.split(delimPipe).map((x: any) => x.split(delimColon)[1]),
+			// pstatus: !d.pstatus ? unknown : d.pstatus.split(delimPipe).map((x: any) => x.split(delimColon)[1]),
+			// ptype: !d.ptype ? unknown : d.ptype.split(delimPipe).map((x: any) => x.split(delimColon)[1]),
+		}
+		const lengths: any = [obj.agroups.length, obj.genders.length];
+		const max = Math.max(...lengths);
+
+		obj.max = max;
+
+		if (obj.agroups.length < max) {
+			const newList = [...obj.agroups];
+			for (let i = 0; i < max-obj.agroups.length; i++) {
+				newList.push(STR_UNKNOWN);
+			}
+			obj.agroups = newList;
+		}
+		if (obj.genders.length < max) {
+			const newList = [...obj.genders];
+			for (let i = 0; i < max-obj.genders.length; i++) {
+				newList.push(STR_UNKNOWN);
+			}
+			obj.genders = newList;
+		}
+		// if (obj.pstatus.length < max) {
+		// 	const newList = [...obj.pstatus];
+		// 	for (let i = 0; i < max-obj.pstatus.length; i++) {
+		// 		newList.push(STR_UNKNOWN);
+		// 	}
+		// 	obj.pstatus = newList;
+		// }
+		// if (obj.ptype.length < max) {
+		// 	const newList = [...obj.ptype];
+		// 	for (let i = 0; i < max-obj.ptype.length; i++) {
+		// 		newList.push(STR_UNKNOWN);
+		// 	}
+		// 	obj.ptype = newList;
+		// }
+		return obj;
+	});
+
+	const chartMap = new Map();
+
+	chartData.forEach((d: any) => {
+		for (let i = 0; i < d.max; i++) {
+			const key = `${d.agroups[i]}|${d.genders[i]}`;
+			if (chartMap.has(key)) {
+				chartMap.set(key, chartMap.get(key) + 1);
+			} else {
+				chartMap.set(key, 1);
+			}
 		}
 	});
 
-	const incidentsArray = Array.from(msMap, ([key, value]) => [key, value]);
+	const zeroOutData = (key: string) => chartMap.get(key) ? chartMap.get(key) : 0;
 
+	const chartSeries = [
+		{
+			data: [
+				zeroOutData(`${IncidentParticipantAgeGroup.Adult}|${IncidentParticipantGender.Unknown}`),
+				zeroOutData(`${IncidentParticipantAgeGroup.Teen}|${IncidentParticipantGender.Unknown}`),
+				zeroOutData(`${IncidentParticipantAgeGroup.Child}|${IncidentParticipantGender.Unknown}`),
+				zeroOutData(`${IncidentParticipantAgeGroup.Unknown}|${IncidentParticipantGender.Unknown}`)
+			]
+		},
+		{
+			data: [
+				zeroOutData(`${IncidentParticipantAgeGroup.Adult}|${IncidentParticipantGender.Female}`),
+				zeroOutData(`${IncidentParticipantAgeGroup.Teen}|${IncidentParticipantGender.Female}`),
+				zeroOutData(`${IncidentParticipantAgeGroup.Child}|${IncidentParticipantGender.Female}`),
+				zeroOutData(`${IncidentParticipantAgeGroup.Unknown}|${IncidentParticipantGender.Female}`)
+			]
+		},
+		{
+			data: [
+				zeroOutData(`${IncidentParticipantAgeGroup.Adult}|${IncidentParticipantGender.Male}`),
+				zeroOutData(`${IncidentParticipantAgeGroup.Teen}|${IncidentParticipantGender.Male}`),
+				zeroOutData(`${IncidentParticipantAgeGroup.Child}|${IncidentParticipantGender.Male}`),
+				zeroOutData(`${IncidentParticipantAgeGroup.Unknown}|${IncidentParticipantGender.Male}`)
+			]
+		}
+	]
+
+	chartSeries.forEach((s: any, i: number) => {
+		chartStack.series[i].setData(s.data)
+	})
+
+	chartStack.setTitle({ text: title });
+
+}
+
+const setupTimeChart = () => {
 	// @ts-ignore
-	Highcharts.chart('chartTime', {
+	chartTime = Highcharts.chart('chartTime', {
 		chart: {
 			zoomType: 'x',
 			style: {
@@ -700,7 +801,7 @@ const setupTimeChart = (data: Incident[]) => {
 			}
 		},
 		title: {
-			text: 'Incidents Over Time (2014-2016)',
+			text: '',
 			align: 'left'
 		},
 		xAxis: {
@@ -744,13 +845,95 @@ const setupTimeChart = (data: Incident[]) => {
 
 		series: [{
 			type: 'area',
-			name: 'Incidents',
-			data: incidentsArray
+			name: 'Incidents'
 		}]
 	});
 }
 
+const loadTimeChartData = (data: Incident[], title: string) => {
+	const msMap = new Map();
+	data.forEach((d: Incident) => {
+		const dateSplit = d.date.split('/');
+		const dateObj = new Date(Number(dateSplit[2]), Number(dateSplit[0]) - 1, Number(dateSplit[1]));
+		const ms = dateObj.getTime();
+		if (msMap.has(ms)) {
+			msMap.set(ms, msMap.get(ms) + 1);
+		} else {
+			msMap.set(ms, 1);
+		}
+	});
+	const incidentsArray = Array.from(msMap, ([key, value]) => [key, value]);
+	chartTime.series[0].setData(incidentsArray)
+	chartTime.setTitle({ text: title });
+}
 
+const setupBubbleChart = (data: Incident[]) => {
+
+	const stateMap = new Map();
+	data.forEach((d: Incident) => {
+		const state = findStateByAbbr(d.st)!?.name ? findStateByAbbr(d.st)!?.name : "Unknown";
+		if (stateMap.has(state)) {
+			stateMap.set(state, stateMap.get(state) + 1);
+		} else {
+			stateMap.set(state, 1);
+		}
+	});
+
+	// @ts-ignore
+	Highcharts.chart('chartBubble', {
+		chart: {
+			type: 'packedbubble',
+			style: {
+				fontFamily: 'Encode Sans Condensed'
+			}
+		},
+		title: {
+			text: 'USA Incidents By State',
+			align: 'left'
+		},
+		tooltip: {
+			useHTML: true,
+			pointFormat: '<b>{point.name}:</b> {point.value}incidents'
+		},
+		plotOptions: {
+			packedbubble: {
+				minSize: '1%',
+				maxSize: '100%',
+				zMin: 0,
+				zMax: 1000,
+				layoutAlgorithm: {
+					splitSeries: false,
+					gravitationalConstant: 0.02
+				},
+				dataLabels: {
+					enabled: true,
+					format: '{point.name}',
+					filter: {
+						property: 'y',
+						operator: '>',
+						value: 250
+					},
+					style: {
+						color: 'black',
+						textOutline: 'none',
+						fontWeight: 'normal'
+					}
+				}
+			}
+		},
+		series: [
+			{
+				name: 'States',
+				data: Array.from(stateMap).map((s: any) => {
+					return {
+						name: s[0],
+						value: s[1]
+					}
+				})
+			}
+		]
+	});
+}
 
 
 
