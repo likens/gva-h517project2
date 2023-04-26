@@ -2,8 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+	font-family: "League Mono";
+	src: url("/fonts/LeagueMono-NarrowMedium.woff2") format("woff2");
+  }
+
 :root {
-	font-family: 'Encode Sans Condensed', sans-serif;
+	font-family: 'League Mono', sans-serif;
 	line-height: 1.5;
 	font-weight: 400;
 

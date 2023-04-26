@@ -65,6 +65,39 @@ export enum IncidentParticipantGender {
     Unknown = "Unknown"
 }
 
+export enum IncidentGunType {
+    Unknown = "Unknown",
+    Other = "Other",
+    Rifle = "Rifle",
+    Handgun = "Handgun",
+    Shotgun = "Shotgun"
+}
+
+export enum IncidentGunCaliber {
+    Cal357Mag = "357 Mag",
+    Cal40SW = "40 SW",
+    Cal22LR = "22 LR",
+    Cal45Auto = "45 Auto",
+    Cal16Gauge = "16 gauge",
+    Cal12Gauge = "12 gauge",
+    Cal9mm = "9mm",
+    Cal38Spl = "38 Spl",
+    Cal3030Win = "30-30 Win",
+    Cal25Auto = "25 Auto",
+    Cal32Auto = "32 Auto",
+    Cal762 = "7.62",
+    Cal380Auto = "380 Auto",
+    Cal308Win = "308 Win",
+    Cal410Gauge = "410 gauge",
+    Cal223Rem = "223 Rem",
+    Cal20Gauge = "20 gauge",
+    Cal44Mag = "44 Mag",
+    Cal10mm = "10mm",
+    Cal3006Spr = "30-06 Spr",
+    Cal300Win = "300 Win",
+    Cal28Gauge = "28 gauge"
+}
+
 export const STR_FEMALE = IncidentParticipantGender.Female;
 export const STR_MALE = IncidentParticipantGender.Male;
 

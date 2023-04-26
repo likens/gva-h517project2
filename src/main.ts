@@ -3,10 +3,11 @@ import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty,
 import * as Highcharts from 'highcharts';
 import HC_more from "highcharts/highcharts-more";
 HC_more(Highcharts);
-import { Incident, STR_FEMALE, STR_MALE, STR_ADULT, STR_CHILD, STR_TEEN, findStateByCode, US_STATES_DICT, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, findStateByAbbr } from "./utils";
+import { Incident, STR_FEMALE, STR_MALE, STR_ADULT, STR_CHILD, STR_TEEN, findStateByCode, US_STATES_DICT, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, IncidentGunCaliber } from "./utils";
 
-const globalAlpha = .25;
-const highlightColor = Color.RED.withAlpha(globalAlpha);
+const fillAlpha = .05;
+const outlineAlpha = .25;
+const highlightAlpha = .35;
 
 const delimPipe = "||";
 const delimColon = "::";
@@ -19,6 +20,7 @@ const mapIncidentEntities: any[] = [];
 
 let chartStack: any;
 let chartTime: any;
+let chartBubble: any;
 
 let highlightedEntities: any[] = [];
 let cdEntities: any[] = [];
@@ -46,7 +48,8 @@ const viewer = new Viewer("cesium", {
 	selectionIndicator: false,
 	sceneModePicker: false,
 	imageryProvider: new MapboxStyleImageryProvider({
-		styleId: "dark-v11",
+		styleId: "clgx5grqi00l101p8hf2bh1cv",
+		username: "likens",
 		accessToken: MAPBOX_API_KEY
 	})
 });
@@ -84,6 +87,7 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			countyNav.innerHTML = "";
 			loadBarChartData(allData, `USA Incidents by Age Group and Gender`);
 			loadTimeChartData(allData, `USA Incidents Over Time (2014-2016)`);
+			loadBubbleChartData(allData, `USA Incidents by Gun Type`);
 		}
 	})
 	
@@ -116,6 +120,7 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			clearIncidentEntities();
 			loadBarChartData(incidentData, `${stateNav.innerHTML} Incidents by Age Group and Gender`);
 			loadTimeChartData(incidentData, `${stateNav.innerHTML} Incidents Over Time (2014-2016)`);
+			loadBubbleChartData(incidentData, `${stateNav.innerHTML} Incidents by Gun Type`);
 		}
 	})
 
@@ -132,7 +137,8 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 	loadTimeChartData(data[0], 'USA Incidents Over Time (2014-2016)')
 	
 	// init bubble chart
-	setupBubbleChart(data[0]);
+	setupBubbleChart();
+	loadBubbleChartData(data[0], 'USA Incidents by Gun Type')
 
 })
 
@@ -267,7 +273,6 @@ const addToGeoMap = (key: string, map: Map<any, any>, optionals: any = undefined
 				gender: { },
 				ageGroup: { }
 			},
-			// color: Color.fromRandom({alpha: globalAlpha}),
 			...optionals
 		}
 		obj.incidents.gender[STR_FEMALE] = 0;
@@ -300,7 +305,7 @@ const updateMaterial = (entity: Entity, color: Color) => {
 	const colorProperty = new CallbackProperty((_t, r) => {
 		if (highlightedEntities.length) {
 			if (highlightedEntities.find((e: Entity) => e.id === entity.id)) {
-				return Color.clone(highlightColor, r);
+				return Color.clone(Color.WHITE.withAlpha(highlightAlpha), r);
 			}
 		}
 		return Color.clone(color, r);
@@ -309,26 +314,9 @@ const updateMaterial = (entity: Entity, color: Color) => {
 	return new ColorMaterialProperty(colorProperty);
 }
 
-
-
-
-
 camera.moveEnd.addEventListener(() => {
 	console.log("CAMERA:", getCurrentCamera());
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 	// const tooltip: any = viewer.entities.getById('tooltip');
@@ -383,10 +371,13 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 			} else {
 				tooltipText = `
 					${props.CITY} - ${props.DATE}
-					${props.INJURED ? `<br/> ${props.INJURED} injured` : ``}
-					${props.KILLED ? `<br/> ${props.KILLED} killed` : ``}
-
+					<br/>
+					${props.PSTATUS ? props.PSTATUS : ``}
+					<br/>
+					${props.GTYPE ? props.GTYPE : ``}
 				`
+				// ${props.INJURED ? `<br/> ${props.INJURED} injured` : ``}
+				// ${props.KILLED ? `<br/> ${props.KILLED} killed` : ``}
 			}
 
 		}
@@ -402,34 +393,6 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 	}
 
 }, ScreenSpaceEventType.MOUSE_MOVE);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 handler.setInputAction((movement: { position: Cartesian2; }) => {
 
@@ -482,6 +445,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			clearIncidentEntities();
 			loadBarChartData(incidentData, `${entityName} Incidents by Age Group and Gender`);
 			loadTimeChartData(incidentData, `${entityName} Incidents Over Time (2014-2016)`);
+			loadBubbleChartData(incidentData, `${entityName} Incidents by Gun Type`);
 
 		} else if (entityType === "CNY") {
 
@@ -519,9 +483,9 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 
 			clearIncidentEntities();
 			addIncidentEntities(incidentData);
-			console.log(incidentData);
 			loadBarChartData(incidentData, `${countyFull} Incidents by Age Group and Gender`);
 			loadTimeChartData(incidentData, `${countyFull} Incidents Over Time (2014-2016)`);
+			loadBubbleChartData(incidentData, `${countyFull} Incidents by Gun Type`);
 
 		}
 
@@ -531,49 +495,15 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 
 }, ScreenSpaceEventType.LEFT_CLICK);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const setupDataSources = () => {
 
 	GeoJsonDataSource.load("us_st.json").then((source) => {
 		viewer.dataSources.add(source);
 		stEntities = source.entities.values;
 		for (var i = 0; i < stEntities.length; i++) {
-			stEntities[i].polygon.material = updateMaterial(stEntities[i], Color.WHITE.withAlpha(globalAlpha));
+			stEntities[i].polygon.material = updateMaterial(stEntities[i], Color.WHITE.withAlpha(fillAlpha));
 			stEntities[i].polygon.outline = true;
-			stEntities[i].polygon.outlineColor = Color.BLACK;
+			stEntities[i].polygon.outlineColor = Color.WHITE.withAlpha(outlineAlpha);
 		}
 	})
 
@@ -594,22 +524,12 @@ const setupDataSources = () => {
 		cnyEntities = source.entities.values;
 		for (var i = 0; i < cnyEntities.length; i++) {
 			cnyEntities[i].show = false;
-			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], Color.YELLOW.withAlpha(globalAlpha));
+			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], Color.WHITE.withAlpha(fillAlpha));
 			cnyEntities[i].polygon.outline = true;
-			cnyEntities[i].polygon.outlineColor = Color.BLACK;
+			cnyEntities[i].polygon.outlineColor = Color.WHITE.withAlpha(outlineAlpha);
 		}
 	})
 }
-
-
-
-
-
-
-
-
-
-
 
 const clearIncidentEntities = () => {
 	mapIncidentEntities.forEach((id: string) => {
@@ -620,11 +540,52 @@ const clearIncidentEntities = () => {
 
 const addIncidentEntities = (data: Incident[]) => {
 	data.forEach((incident: Incident) => {
+
 		const props = new PropertyBag();
-		props.addProperty("CITY", incident.cty ? incident.cty : "NOCITY");
+		// props.addProperty("CD", incident.cd);
+		props.addProperty("CITY", incident.cty ? incident.cty : incident.cny);
 		props.addProperty("DATE", incident.date);
+		props.addProperty("GVAID", incident.id);
 		incident.nkill ? props.addProperty("KILLED", incident.nkill) : ``;
 		incident.ninj ? props.addProperty("INJURED", incident.ninj) : ``;
+
+		if (incident.gtype) {
+			console.log(incident.gtype);
+			const gtype = incident.gtype.split(delimPipe).map((x: any) => x.split(delimColon)[1]);
+			const typeMap = new Map();
+			gtype.forEach((type: any) => {
+				if (typeMap.has(type)) {
+					typeMap.set(type, typeMap.get(type) + 1);
+				} else {
+					typeMap.set(type, 1);
+				}
+			})
+			let gTypeDisplay: any = "";
+			Array.from(typeMap).forEach((type: any) => {
+				gTypeDisplay = `
+					${gTypeDisplay} ${type[1]} ${type[0]},
+				`
+			});
+			props.addProperty("GTYPE", gTypeDisplay);
+		}
+
+		if (incident.pstatus) {
+			const pstatus = incident.pstatus.split(delimPipe).map((x: any) => x.split(delimColon)[1]);
+			const statusMap = new Map();
+			pstatus.forEach((status: any) => {
+				if (statusMap.has(status)) {
+					statusMap.set(status, statusMap.get(status) + 1);
+				} else {
+					statusMap.set(status, 1);
+				}
+			})
+			let pStatusDisplay: any = "";
+			Array.from(statusMap).forEach((status: any) => {
+				pStatusDisplay = `${pStatusDisplay} ${status[1]} ${status[0]},`
+			});
+			props.addProperty("PSTATUS", pStatusDisplay);
+		}
+
 		let color = Color.WHITE;
 		if (Number(incident.nkill) > 0) {
 			color = Color.RED;
@@ -637,8 +598,9 @@ const addIncidentEntities = (data: Incident[]) => {
 			show: true,
 			position: Cartesian3.fromDegrees(Number(incident.lng), Number(incident.lat), 0),
 			point: {
-				pixelSize: 4,
-				color: color
+				pixelSize: 6,
+				color: color,
+				outlineWidth: 0
 			},
 			properties: props
 		});
@@ -654,19 +616,13 @@ const flyToPolygon = (polygon: any) => {
 	});
 }
 
-
-
-
-
-
-
 const setupBarChart = () => {
 	// @ts-ignore
 	chartStack = Highcharts.chart('chartStack', {
 		chart: {
 			type: 'column',
 			style: {
-				fontFamily: 'Encode Sans Condensed'
+				fontFamily: 'League Mono'
 			}
 		},
 		title: {
@@ -713,9 +669,7 @@ const loadBarChartData = (data: Incident[], title: string) => {
 		const obj: any = {
 			max: 1,
 			agroups: !d.agroups ? [STR_UNKNOWN] : d.agroups.split(delimPipe).map((x: any) => x.split(delimColon)[1]),
-			genders: !d.genders ? [STR_UNKNOWN] : d.genders.split(delimPipe).map((x: any) => x.split(delimColon)[1]),
-			// pstatus: !d.pstatus ? unknown : d.pstatus.split(delimPipe).map((x: any) => x.split(delimColon)[1]),
-			// ptype: !d.ptype ? unknown : d.ptype.split(delimPipe).map((x: any) => x.split(delimColon)[1]),
+			genders: !d.genders ? [STR_UNKNOWN] : d.genders.split(delimPipe).map((x: any) => x.split(delimColon)[1])
 		}
 		const lengths: any = [obj.agroups.length, obj.genders.length];
 		const max = Math.max(...lengths);
@@ -736,20 +690,6 @@ const loadBarChartData = (data: Incident[], title: string) => {
 			}
 			obj.genders = newList;
 		}
-		// if (obj.pstatus.length < max) {
-		// 	const newList = [...obj.pstatus];
-		// 	for (let i = 0; i < max-obj.pstatus.length; i++) {
-		// 		newList.push(STR_UNKNOWN);
-		// 	}
-		// 	obj.pstatus = newList;
-		// }
-		// if (obj.ptype.length < max) {
-		// 	const newList = [...obj.ptype];
-		// 	for (let i = 0; i < max-obj.ptype.length; i++) {
-		// 		newList.push(STR_UNKNOWN);
-		// 	}
-		// 	obj.ptype = newList;
-		// }
 		return obj;
 	});
 
@@ -809,7 +749,7 @@ const setupTimeChart = () => {
 		chart: {
 			zoomType: 'x',
 			style: {
-				fontFamily: 'Encode Sans Condensed'
+				fontFamily: 'League Mono'
 			}
 		},
 		title: {
@@ -879,38 +819,28 @@ const loadTimeChartData = (data: Incident[], title: string) => {
 	chartTime.setTitle({ text: title });
 }
 
-const setupBubbleChart = (data: Incident[]) => {
-
-	const stateMap = new Map();
-	data.forEach((d: Incident) => {
-		const state = findStateByAbbr(d.st)!?.name ? findStateByAbbr(d.st)!?.name : "Unknown";
-		if (stateMap.has(state)) {
-			stateMap.set(state, stateMap.get(state) + 1);
-		} else {
-			stateMap.set(state, 1);
-		}
-	});
-
+const setupBubbleChart = () => {
 	// @ts-ignore
-	Highcharts.chart('chartBubble', {
+	chartBubble = Highcharts.chart('chartBubble', {
 		chart: {
 			type: 'packedbubble',
 			style: {
-				fontFamily: 'Encode Sans Condensed'
+				fontFamily: 'League Mono'
 			}
 		},
 		title: {
-			text: 'USA Incidents By State',
+			text: 'Number of incidents in each state',
 			align: 'left'
 		},
 		tooltip: {
+			enabled: false,
 			useHTML: true,
-			pointFormat: '<b>{point.name}:</b> {point.value}incidents'
+			pointFormat: '<strong>{point.name}</strong> involved in <strong>{point.value}</strong> incidents'
 		},
 		plotOptions: {
 			packedbubble: {
-				minSize: '1%',
-				maxSize: '100%',
+				minSize: '80%',
+				maxSize: '120%',
 				zMin: 0,
 				zMax: 1000,
 				layoutAlgorithm: {
@@ -918,13 +848,10 @@ const setupBubbleChart = (data: Incident[]) => {
 					gravitationalConstant: 0.02
 				},
 				dataLabels: {
+					allowOverlap: true,
 					enabled: true,
-					format: '{point.name}',
-					filter: {
-						property: 'y',
-						operator: '>',
-						value: 250
-					},
+					format: '<div class="text-center"><div class="text-lg">{point.value}</div><div>{point.name}</div></div>',
+					useHTML: true,
 					style: {
 						color: 'black',
 						textOutline: 'none',
@@ -934,21 +861,205 @@ const setupBubbleChart = (data: Incident[]) => {
 			}
 		},
 		series: [
-			{
-				name: 'States',
-				data: Array.from(stateMap).map((s: any) => {
-					return {
-						name: s[0],
-						value: s[1]
-					}
-				})
-			}
+			{ name: "Gun Types" }
 		]
 	});
 }
 
+const loadBubbleChartData = (data: Incident[], title: string) => {
+
+	const chartData = data.map((d: Incident) => {
+		const obj: any = {
+			pstatus: !d.pstatus ? [STR_UNKNOWN] : d.pstatus.split(delimPipe).map((x: any) => x.split(delimColon)[1]),
+			gtype: !d.gtype ? [STR_UNKNOWN] : d.gtype.split(delimPipe).map((x: any) => {
+				const type =  x.split(delimColon)[1];
+				if (type.includes(IncidentGunCaliber.Cal762)) {
+					return IncidentGunCaliber.Cal762;
+				} else if (type.includes(IncidentGunCaliber.Cal223Rem)) {
+					return IncidentGunCaliber.Cal223Rem;
+				} else {
+					return type;
+				}
+			})
+		}
+		return obj;
+	});
+
+	const chartMap = new Map();
+
+	chartData.forEach((d: any) => {
+		const gunTypeMap = new Map();
+		d.gtype.forEach((type: any) => {
+			if (gunTypeMap.has(type)) {
+				gunTypeMap.set(type, gunTypeMap.get(type) + 1);
+			} else {
+				gunTypeMap.set(type, 1);
+			}
+		});
+		Array.from(gunTypeMap).forEach((kv: any) => {
+			if (chartMap.has(kv[0])) {
+				chartMap.set(kv[0], chartMap.get(kv[0]) + 1);
+			} else {
+				chartMap.set(kv[0], 1);
+			}
+		})
+	});
+
+	const chartSeries = Array.from(chartMap).map((m: any) => {
+		return { name: m[0], value: m[1] }
+	});
+
+	chartBubble.series[0].setData(chartSeries);
+	chartBubble.setTitle({ text: title });
+
+}
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// let pstatus = d.pstatus;
+			// let gtype = d.gtype;
+			// const statuses: any = [];
+			// const gunTypes: any = [];
+
+		// pstatus.forEach((status: string) => {
+		// 	if (status.includes(",")) {
+		// 		const sSplit = status.split(", ");
+		// 		sSplit.forEach((s: any) => {
+		// 			statuses.push(s);
+		// 		});
+		// 	} else {
+		// 		statuses.push(status);
+		// 	}
+		// })
+		// gtype.forEach((g: any) => {
+		// 	switch (g) {
+		// 		case IncidentGunCaliber.Cal357Mag: 
+		// 		case IncidentGunCaliber.Cal40SW: 
+		// 		case IncidentGunCaliber.Cal45Auto: 
+		// 		case IncidentGunCaliber.Cal9mm: 
+		// 		case IncidentGunCaliber.Cal38Spl: 
+		// 		case IncidentGunCaliber.Cal25Auto: 
+		// 		case IncidentGunCaliber.Cal32Auto: 
+		// 		case IncidentGunCaliber.Cal380Auto: 
+		// 		case IncidentGunCaliber.Cal44Mag: 
+		// 		case IncidentGunCaliber.Cal10mm:
+		// 			gunTypes.push(IncidentGunType.Handgun);
+		// 			break;
+		// 		case IncidentGunCaliber.Cal22LR: 
+		// 		case IncidentGunCaliber.Cal3030Win: 
+		// 		case IncidentGunCaliber.Cal762: 
+		// 		case IncidentGunCaliber.Cal308Win: 
+		// 		case IncidentGunCaliber.Cal223Rem: 
+		// 		case IncidentGunCaliber.Cal3006Spr: 
+		// 		case IncidentGunCaliber.Cal300Win:
+		// 			gunTypes.push(IncidentGunType.Rifle);
+		// 			break;
+		// 		case IncidentGunCaliber.Cal16Gauge: 
+		// 		case IncidentGunCaliber.Cal12Gauge: 
+		// 		case IncidentGunCaliber.Cal410Gauge: 
+		// 		case IncidentGunCaliber.Cal20Gauge: 
+		// 		case IncidentGunCaliber.Cal28Gauge: 
+		// 		case IncidentGunCaliber.Cal3006Spr: 
+		// 		case IncidentGunCaliber.Cal300Win:
+		// 			gunTypes.push(IncidentGunType.Shotgun);
+		// 			break;
+		// 		default:
+		// 			if (g !== IncidentGunType.Handgun &&
+		// 				g !== IncidentGunType.Shotgun &&
+		// 				g !== IncidentGunType.Rifle &&
+		// 				g !== IncidentGunType.Other &&
+		// 				g !== IncidentGunType.Unknown) {
+		// 					console.log("UNKNOWN TYPE:", g);
+		// 			} else {
+		// 				gunTypes.push(g);
+		// 			}
+		// 			gunTypes.push(g);
+		// 			break;
+		// 	}
+		// })
+
+		// const gunTypeMap = new Map();
+
+
+		// statuses.forEach((status: any) => {
+		// 	const keyMap = new Map();
+		// 	const gTypes = Array.from(gunTypeMap);
+		// 	gTypes.forEach((type: any) => {
+		// 		const key = `${status}${delimPipe}${type[0]}`;
+		// 		if (keyMap.has(key)) {
+		// 			keyMap.set(key, keyMap.get(key) + type[1]);
+		// 		} else {
+		// 			keyMap.set(key, type[1]);
+		// 		}
+		// 	});
+		// 	Array.from(keyMap).forEach((kv: any) => {
+		// 		if (chartMap.has(kv[0])) {
+		// 			chartMap.set(kv[0], chartMap.get(kv[0]) + kv[1]);
+		// 		} else {
+		// 			chartMap.set(kv[0], kv[1]);
+		// 		}
+		// 	})
+		// });
+
+	// const chartSeries = [];
+	// for (const [key, value] of chartMap) {
+	// 	const [status, gtype] = key.split(delimPipe);
+	// 	let obj: any = chartSeries.find((o: any) => o.name === status);
+	// 	if (!obj) {
+	// 		obj = { name: status, data: [] };
+	// 		chartSeries.push(obj);
+	// 	}
+	// 	obj.data.push({ name: gtype, value: value });
+	// }
+
+	// chartSeries.forEach((s: any, i: number) => {
+	// 	chartBubble.series[i].setData(s.data)
+	// });
+
+	// chartBubble.series[0].setData(chartMap)
 
 
 
