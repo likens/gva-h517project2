@@ -65,6 +65,9 @@ export enum IncidentParticipantGender {
     Unknown = "Unknown"
 }
 
+export const STR_FEMALE = IncidentParticipantGender.Female;
+export const STR_MALE = IncidentParticipantGender.Male;
+
 export enum IncidentGunType {
     Unknown = "Unknown",
     Other = "Other",
@@ -98,8 +101,19 @@ export enum IncidentGunCaliber {
     Cal28Gauge = "28 gauge"
 }
 
-export const STR_FEMALE = IncidentParticipantGender.Female;
-export const STR_MALE = IncidentParticipantGender.Male;
+export enum IncidentAttribute {
+    AccidentalShooting = "Accidental Shooting",
+    ChildInvolvedShooting = "Child Involved Shooting",
+    DefensiveUse = "Defensive Use",
+    DomesticViolence = "Domestic Violence",
+    DrugInvolvement = "Drug Involvement",
+    GangInvolvement = "Gang Involvement",
+    HomeInvasion = "Home Invasion",
+    MassShooting = "Mass Shooting",
+    OfficerInvolvedShooting = "Officer Involved Shooting",
+    SchoolShooting = "School Shooting",
+    Suicide = "Suicide"
+}
 
 interface UsState {
     name: string;

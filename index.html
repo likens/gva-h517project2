@@ -13,147 +13,32 @@
 		<div class="master grid grid-rows-[min-content_1fr] w-screen h-screen bg-slate-900 overflow-hidden">
 
 			<div id="topbar" class="w-full flex items-center self-start justify-between bg-slate-700 text-white z-40 font-bold uppercase py-3 px-3">
-				<div class="text-3xl">
-					Gun Violence In America
-				</div>
-				<div class="flex gap-6 text-2xl">
+				<div class="text-4xl">Gun Violence In America</div>
+				<div class="flex gap-6 text-3xl">
 					<a href="#" class="hover:underline">About</a>
 					<a href="#" class="hover:underline">Video</a>
 				</div>
 			</div>
 
-			<div class="grid grid-cols-[400px_1fr] grid-rows-[1fr_200px] bg-slate-700 text-white w-full overflow-auto">
+			<div class="relative grid grid-cols-[400px_1fr] grid-rows-[1fr_200px] bg-slate-700 text-white w-full overflow-auto">
+
+				<div id="splash" class="z-50 flex items-center justify-center absolute top-0 left-0 right-0 bottom-0 bg-slate-900 border-slate-500 border-solid border-t text-3xl transition-fade duration-1000">Loading<div id="ellipsis" class="w-[52px] ml-2"></div></div>
 
 				<div id="sidebar" class="row-span-2 h-full overflow-auto">
-					<div id="chartStack" class="w-full h-[400px]"></div>
-					<div id="chartBubble" class="w-full h-[400px]"></div>
-					<!-- <div id="chartDonut" class="w-full h-[400px]"></div> -->
+					<div id="incidentTotal" class="w-full text-center font-bold uppercase text-3xl py-4 px-1"></div>
+					<div id="chartStack" class="w-full"></div>
+					<div id="chartPie" class="w-full"></div>
+					<div id="chartBubble" class="w-full"></div>
 				</div>
 
 				<div id="map" class="!relative w-full h-full z-10 overflow-hidden border-slate-500 border-solid border-t border-l border-b">
 					<div id="cesium">
-						<div id="breadcrumb" class="flex absolute top-0 left-0 z-20 bg-slate-900/75 font-bold text-2xl">
+						<div id="breadcrumb" class="flex absolute top-0 left-0 z-20 bg-slate-800 font-bold text-2xl">
 							<div id="usa" class="cursor-pointer hover:bg-slate-500 px-4 py-2">USA</div>
 							<div id="state" class="cursor-pointer hover:bg-slate-500 hidden px-4 py-2"></div>
 							<div id="county" class="hidden px-4 py-2"></div>
 						</div>
 						<div id="tooltip" class="absolute top-0 left-0 bg-slate-700 text-white border-slate-500 border-solid border font-bold py-2 px-4 z-20"></div>
-						<div id="filters" class="grid absolute bottom-0 right-0 z-20 bg-slate-900/75">
-							<div class="grid">
-								<div class="uppercase font-bold">Gender</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Male
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Female
-									</label>
-								</div>
-							</div>
-							<div class="grid">
-								<div class="uppercase font-bold">Age Group</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Adult (18+)
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Teen (12-17)
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Child (0-11)
-									</label>
-								</div>
-							</div>
-							<div class="grid">
-								<div class="uppercase font-bold">Attributes</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Mass Shooting
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										School Shooting
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Officer Involved
-									</label>
-								</div>
-								<!-- <div>
-									<label>
-										<input checked type="checkbox" />
-										Gang Involvement
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Drug Involvement
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Accidental Shooting
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Child Involved
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Home Invasion
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Defensive Use
-									</label>
-								</div>
-								<div>
-									<label>
-										<input checked type="checkbox" />
-										Suicide
-									</label>
-								</div> -->
-							</div>
-							<div class="grid">
-								<div class="uppercase font-bold">Map</div>
-								<div>
-									<label>
-										<input checked type="radio" />
-										2D
-									</label>
-								</div>
-								<div>
-									<label>
-										<input type="radio" />
-										3D
-									</label>
-								</div>
-							</div>
-						</div>
 					</div>
 				</div>
 

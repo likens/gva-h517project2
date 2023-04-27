@@ -5,7 +5,7 @@
 @font-face {
 	font-family: "League Mono";
 	src: url("/fonts/LeagueMono-NarrowMedium.woff2") format("woff2");
-  }
+}
 
 :root {
 	font-family: 'League Mono', sans-serif;
