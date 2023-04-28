@@ -103,16 +103,19 @@ export enum IncidentGunCaliber {
 
 export enum IncidentAttribute {
     AccidentalShooting = "Accidental Shooting",
-    ChildInvolvedShooting = "Child Involved Shooting",
+    ChildInvolvedIncident = "Child Involved Incident",
     DefensiveUse = "Defensive Use",
     DomesticViolence = "Domestic Violence",
     DrugInvolvement = "Drug Involvement",
     GangInvolvement = "Gang Involvement",
     HomeInvasion = "Home Invasion",
     MassShooting = "Mass Shooting",
-    OfficerInvolvedShooting = "Officer Involved Shooting",
-    SchoolShooting = "School Shooting",
-    Suicide = "Suicide"
+    OfficerInvolvedIncident = "Officer Involved Incident",
+    SchoolIncident = "School Incident",
+    Suicide = "Suicide",
+    Injury = "Injury",
+    Death = "Death",
+    Business = "Business"
 }
 
 interface UsState {

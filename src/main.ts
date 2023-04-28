@@ -3,7 +3,7 @@ import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty,
 import * as Highcharts from 'highcharts';
 import HC_more from "highcharts/highcharts-more";
 HC_more(Highcharts);
-import { Incident, findStateByCode, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, IncidentGunCaliber, IncidentGunType } from "./utils";
+import { Incident, findStateByCode, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, IncidentGunCaliber, IncidentGunType, IncidentAttribute } from "./utils";
 
 const fillAlpha = .1;
 const outlineAlpha = .25;
@@ -506,7 +506,7 @@ const flyToPolygon = (polygon: any) => {
 }
 
 const updateIncidentTotal = (total: number, name: string) => {
-	incidentTotal.innerHTML = `${total} total incidents in ${name}`;
+	incidentTotal.innerHTML = `${total} total incidents <br/> within ${name}`;
 }
 
 const setupBarChart = () => {
@@ -958,7 +958,56 @@ const setupPieChart = () => {
 }
 
 const loadPieChartData = (data: Incident[]) => {
-	console.log(data);
+	const accidentalMap = new Map([
+		[`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Injury}`, 0],
+		[`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Death}`, 0],
+		[`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Business}`, 0],
+		[`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`, 0],
+	]);
+	const childMap = new Map();
+	data.forEach((d: any) => {
+
+		const attr = d.attr?.split(delimPipe);
+
+		if (attr) {
+
+			const accidental = attr?.filter((a: any) => a.includes(IncidentAttribute.AccidentalShooting)).map((a: any) => a.replace(IncidentAttribute.AccidentalShooting, ""));
+			if (accidental?.length === 1) {
+				accidentalMap.set(
+					`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`,
+					accidentalMap.get(`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`)! + 1);
+			} else if (accidental?.length) {
+				accidental?.forEach((a: any) => {
+					if (!a) {
+						accidentalMap.set(
+							`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`,
+							accidentalMap.get(`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`)! + 1);
+					} else if (a.includes(IncidentAttribute.Business)) {
+						accidentalMap.set(
+							`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Business}`,
+							accidentalMap.get(`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Business}`)! + 1);
+					} else if (a.includes(IncidentAttribute.Injury)) {
+						accidentalMap.set(
+							`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Injury}`,
+							accidentalMap.get(`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Business}`)! + 1);
+					} else if (a.includes(IncidentAttribute.Death)) {
+						accidentalMap.set(
+							`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Death}`,
+							accidentalMap.get(`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Death}`)! + 1);
+					}
+				})
+			}
+
+			const children = attr.filter((a: any) => a.includes(IncidentAttribute.ChildInvolvedIncident));
+
+			if (children?.length) {
+				console.log(children);
+			}
+		}
+
+
+	});
+	console.log(accidentalMap);
 }
 
 const updateDataViews = (data: Incident[], title: string) => {
