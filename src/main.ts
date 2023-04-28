@@ -474,7 +474,8 @@ const addIncidentEntities = (data: Incident[]) => {
 			});
 			props.addProperty("PSTATUS", pStatusDisplay);
 		}
-
+		//Caleb do your magic. Here's my array of status colors
+		const statusColors= ['#facc15','#b91c1c','#22c55e','#2563eb']
 		let color = Color.WHITE;
 		if (Number(incident.nkill) > 0) {
 			color = Color.RED;
@@ -549,9 +550,9 @@ const setupBarChart = () => {
 			}
 		},
 		series: [
-			{ name: IncidentParticipantGender.Unknown, color: '#bbb' },
-			{ name: IncidentParticipantGender.Female, color: '#F88FB3' },
-			{ name: IncidentParticipantGender.Male, color: '#AFDAF5' }
+			{ name: IncidentParticipantGender.Unknown, color: '#9DB4C0' },
+			{ name: IncidentParticipantGender.Female, color: '#f472b6' },
+			{ name: IncidentParticipantGender.Male, color: '#60a5fa' }
 		]
 		// options - see https://api.highcharts.com/highcharts
 	});
@@ -660,7 +661,7 @@ const setupTimeChart = () => {
 		},
 		plotOptions: {
 			area: {
-				lineColor: Highcharts.color("#000").setOpacity(.5).get('rgba'),
+				lineColor: Highcharts.color("#a1a1aa").setOpacity(.5).get('rgba'),
 				fillColor: {
 					linearGradient: {
 						x1: 0,
@@ -669,8 +670,9 @@ const setupTimeChart = () => {
 						y2: 1
 					},
 					stops: [
-						[0, "#000"],
-						[1, Highcharts.color("#000").setOpacity(0).get('rgba')]
+						// Zinc 400 to 950
+						[0, "#09090b"],
+						[1, Highcharts.color("#a1a1aa").setOpacity(0).get('rgba')]
 					]
 				},
 				marker: {
@@ -710,6 +712,7 @@ const loadTimeChartData = (data: Incident[]) => {
 }
 
 const setupBubbleChart = () => {
+	const colors = ['#9DB4C0', '#0369A1', '#022C22', '#3B0764', '#713F12', '#0E2127', '#881337', '#38bdf8'];
 	// @ts-ignore
 	chartBubble = Highcharts.chart('chartBubble', {
 		chart: {
@@ -752,11 +755,11 @@ const setupBubbleChart = () => {
 			}
 		},
 		series: [
-			{ name: IncidentGunType.Handgun },
-			{ name: IncidentGunType.Rifle },
-			{ name: IncidentGunType.Shotgun },
-			{ name: IncidentGunType.Other },
-			{ name: IncidentGunType.Unknown }
+			{ name: IncidentGunType.Handgun, color: colors[1] },
+			{ name: IncidentGunType.Rifle , color: colors[2] },
+			{ name: IncidentGunType.Shotgun , color: colors[3] },
+			{ name: IncidentGunType.Other , color: colors[4] },
+			{ name: IncidentGunType.Unknown , color: colors[0] }
 		]
 	});
 }
@@ -866,6 +869,8 @@ const loadBubbleChartData = (data: Incident[]) => {
 
 const setupPieChart = () => {
 	// var colors = ['#AFDAF5', '#F88FB3']
+	const attrColors = ['#9DB4C0', '#0369A1', '#022C22', '#3B0764', '#713F12', '#0E2127', '#881337', '#dc2626', '#14b8a6','#ca8a04','#171717' ];
+	const statusColors= ['#facc15','#b91c1c','#22c55e','#2563eb']
 	// @ts-ignore
 	chartPie = Highcharts.chart('chartPie', {
 		chart: {
@@ -896,7 +901,10 @@ const setupPieChart = () => {
 			series: {
 				dataLabels: {
 					enabled: true,
-					format: '{point.name}: {point.y:.1f}%'
+					format: '{point.name}: {point.y:.1f}%',
+					style: {
+						fontSize: 12 + 'px'
+					}
 				}
 			}
 		},
@@ -908,50 +916,220 @@ const setupPieChart = () => {
 
 		series: [
 			{
-				name: 'Age Ranges',
+				name: 'Incident Attributes',
 				colorByPoint: true,
 				data: [
-					{
-						name: 'Adult 18+',
-						y: 3,
-						drilldown: 'Adult 18+'
-					}, {
-						name: 'Teen 12-17',
-						y: 45,
-						drilldown: 'Teen 12-17'
-					}, {
-						name: 'Child 0-11',
-						y: 7,
-						drilldown: 'Child 0-11'
-					}
-				]
+				{
+					name: 'Accidental Shooting',
+					color: attrColors[0],
+					y: 23,
+					drilldown: 'Accidental Shooting'
+				},
+				{
+					name: 'Child Involved Incident',
+					color: attrColors[1],
+					y: 24,
+					drilldown: 'Child Involved Incident'
+				},
+				{
+					name: 'Defensive Use',
+					color: attrColors[2],
+					y: 7,
+					drilldown: 'Defensive Use'
+				},
+				{
+					name: 'Domestic Violence',
+					color: attrColors[3],
+					y: 7,
+					drilldown: 'Domestic Violence'
+				}
+				,
+				{
+					name: 'Drug Involvement',
+					color: attrColors[4],
+					y: 7,
+					drilldown: 'Drug Involvement'
+				},
+				{
+					name: 'Gang Involvement',
+					color: attrColors[5],
+					y: 7,
+					drilldown: 'Gang Involvement'
+				}, 
+				{
+					name: 'Home Invasion',
+					color: attrColors[6],
+					y: 10,
+					drilldown: 'Home Invasion'
+				},
+				{
+					name: 'Mass Shooting',
+					color: attrColors[7],
+					y: 16,
+					drilldown: 'Mass Shooting'
+				},
+				{
+					name: 'Officer Involved Shooting',
+					color: attrColors[8],
+					y: 16,
+					drilldown: 'Officer Involved Shooting'
+				}
+				,
+				{
+					name: 'School Shooting',
+					color: attrColors[9],
+					y: 16,
+					drilldown: 'School Shooting'
+				},
+				{
+					name: 'Suicide',
+					color: attrColors[10],
+					y: 10,
+					drilldown: 'Suicide'
+				}
+			]
 			}
 		],
 		drilldown: {
-			series: [
+			series: [{
+				name: 'Gang Violence',
+				id: 'Gang Violence',
+				data: [{
+					name: 'Injured',
+					y: 70,
+					color: statusColors[0]
+				},
 				{
-					name: 'Adult 18+',
-					id: 'Adult 18+',
-					data: [
-						[ 'Male', 80 ],
-						[ 'Female', 20 ]
-					]
-				}, {
-					name: 'Teen 12-17',
-					id: 'Teen 12-17',
-					data: [
-						[ 'Male', 90 ],
-						[ 'Female', 10 ]
-					]
-				}, {
-					name: 'Child 0-11',
-					id: 'Child 0-11',
-					data: [
-						[ 'Male', 98 ],
-						[ 'Female', 2 ]
-					]
-				}
-			]
+					name: 'Killed',
+					y: 10,
+					color: statusColors[1]
+				},
+				{
+					name: 'Unharmed',
+					y: 10,
+					color: statusColors[2]
+				},
+				{
+					name: 'Arrested',
+					y: 10,
+					color: statusColors[3]
+				}]
+			}, {
+				name: 'Home Invasion',
+				id: 'Home Invasion',
+				data: [{
+					name: 'Injured',
+					y: 70,
+					color: statusColors[0]
+				},
+				{
+					name: 'Killed',
+					y: 10,
+					color: statusColors[1]
+				},
+				{
+					name: 'Unharmed',
+					y: 10,
+					color: statusColors[2]
+				},
+				{
+					name: 'Arrested',
+					y: 10,
+					color: statusColors[3]
+				}]
+			}, {
+				name: 'Defensive Use',
+				id: 'Defensive Use',
+				data: [{
+					name: 'Injured',
+					y: 70,
+					color: statusColors[0]
+				},
+				{
+					name: 'Killed',
+					y: 10,
+					color: statusColors[1]
+				},
+				{
+					name: 'Unharmed',
+					y: 10,
+					color: statusColors[2]
+				},
+				{
+					name: 'Arrested',
+					y: 10,
+					color: statusColors[3]
+				}]
+			}, {
+				name: 'Child Involved Incident',
+				id: 'Child Involved Incident',
+				data: [{
+					name: 'Injured',
+					y: 70,
+					color: statusColors[0]
+				},
+				{
+					name: 'Killed',
+					y: 10,
+					color: statusColors[1]
+				},
+				{
+					name: 'Unharmed',
+					y: 10,
+					color: statusColors[2]
+				},
+				{
+					name: 'Arrested',
+					y: 10,
+					color: statusColors[3]
+				}]
+			}, {
+				name: 'Accidental Shooting',
+				id: 'Accidental Shooting',
+				data: [{
+					name: 'Injured',
+					y: 70,
+					color: statusColors[0]
+				},
+				{
+					name: 'Killed',
+					y: 10,
+					color: statusColors[1]
+				},
+				{
+					name: 'Unharmed',
+					y: 10,
+					color: statusColors[2]
+				},
+				{
+					name: 'Arrested',
+					y: 10,
+					color: statusColors[3]
+				}]
+			}, {
+				name: 'Other',
+				id: 'Other',
+				data: [{
+					name: 'Injured',
+					y: 70,
+					color: statusColors[0]
+				},
+				{
+					name: 'Killed',
+					y: 10,
+					color: statusColors[1]
+				},
+				{
+					name: 'Unharmed',
+					y: 10,
+					color: statusColors[2]
+				},
+				{
+					name: 'Arrested',
+					y: 10,
+					color: statusColors[3]
+				}]
+			}]
 		}
 	});
 	console.log(chartPie)
