@@ -458,8 +458,9 @@ const addIncidentEntities = (data: Incident[]) => {
 			props.addProperty("GTYPE", gTypeDisplay);
 		}
 
-		if (incident.pstatus) {
-			const pstatus = incident.pstatus.split(delimPipe).map((x: any) => x.split(delimColon)[1]);
+		const pstatus = incident?.pstatus?.split(delimPipe).map((x: any) => x.split(delimColon)[1]);
+
+		if (pstatus?.length) {
 			const statusMap = new Map();
 			pstatus.forEach((status: any) => {
 				if (statusMap.has(status)) {
@@ -474,15 +475,19 @@ const addIncidentEntities = (data: Incident[]) => {
 			});
 			props.addProperty("PSTATUS", pStatusDisplay);
 		}
-		//Caleb do your magic. Here's my array of status colors
-		const statusColors= ['#facc15','#b91c1c','#22c55e','#2563eb']
+
+		console.log(pstatus);
+
 		let color = Color.WHITE;
 		if (Number(incident.nkill) > 0) {
-			color = Color.RED;
+			color = Color.fromCssColorString("#b91c1c");
 		} else if (Number(incident.ninj) > 0) {
-			color = Color.YELLOW;
+			color = Color.fromCssColorString("#facc15");
+		} else if (pstatus?.length) {
+			// FINISH
+			// color = Color.fromCssColorString("#22c55e");
 		} else {
-			color = Color.AQUAMARINE;
+			color = Color.fromCssColorString("#2563eb");
 		}
 		const entity: any = viewer.entities.add({
 			show: true,
@@ -1142,7 +1147,7 @@ const loadPieChartData = (data: Incident[]) => {
 		[`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Business}`, 0],
 		[`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`, 0],
 	]);
-	const childMap = new Map();
+	// const childMap = new Map();
 	data.forEach((d: any) => {
 
 		const attr = d.attr?.split(delimPipe);
@@ -1179,7 +1184,7 @@ const loadPieChartData = (data: Incident[]) => {
 			const children = attr.filter((a: any) => a.includes(IncidentAttribute.ChildInvolvedIncident));
 
 			if (children?.length) {
-				console.log(children);
+				// console.log(children);
 			}
 		}
 
