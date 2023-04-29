@@ -13,7 +13,7 @@
 		<div class="master grid grid-rows-[min-content_1fr] w-screen h-screen bg-slate-900 overflow-hidden">
 
 			<div id="topbar" class="w-full flex items-center self-start justify-between bg-slate-700 text-white z-40 font-bold uppercase py-3 px-3">
-				<div class="text-4xl">Gun Violence In America</div>
+				<div class="text-4xl">Gun Violence In America (2014-2017)</div>
 				<div class="flex gap-6 text-3xl">
 					<a href="#" class="hover:underline">About</a>
 					<a href="#" class="hover:underline">Video</a>
@@ -33,12 +33,12 @@
 
 				<div id="map" class="!relative w-full h-full z-10 overflow-hidden border-slate-500 border-solid border-t border-l border-b">
 					<div id="cesium">
-						<div id="breadcrumb" class="flex absolute top-0 left-0 z-20 bg-slate-800 font-bold text-2xl">
-							<div id="usa" class="cursor-pointer hover:bg-slate-500 px-4 py-2">USA</div>
-							<div id="state" class="cursor-pointer hover:bg-slate-500 hidden px-4 py-2"></div>
-							<div id="county" class="hidden px-4 py-2"></div>
+						<div id="breadcrumb" class="flex absolute top-5 left-5 z-20 bg-slate-800 font-bold text-xl">
+							<div id="usa" class="cursor-pointer hover:bg-slate-500 p-2">USA</div>
+							<div id="state" class="cursor-pointer hover:bg-slate-500 hidden p-2"></div>
+							<div id="county" class="hidden p-2"></div>
 						</div>
-						<div id="tooltip" class="absolute top-0 left-0 bg-slate-700 text-white border-slate-500 border-solid border font-bold py-2 px-4 z-20"></div>
+						<div id="tooltip" class="hidden absolute top-0 left-0 bg-slate-700 text-white border-slate-500 border-solid border font-bold py-2 px-4 z-20 gap-2 !cursor-auto"></div>
 					</div>
 				</div>
 

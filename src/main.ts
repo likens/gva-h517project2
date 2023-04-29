@@ -219,7 +219,7 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 
 	const hideTooltip = () => {
 		htmlTooltip.classList.add('hidden');
-		htmlTooltip.classList.remove('block');
+		htmlTooltip.classList.remove('grid');
 		highlightedEntities = [];
 	}
 
@@ -238,7 +238,19 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 
 			const state = findStateByCode(props.STATE);
 
-			if (props.COUNTY) {
+			if (props.GVAID) {
+				tooltipText = `
+					<div class="uppercase text-center text-xl">${props.CITY}, ${props.STATE} - ${props.DATE}</div>
+					<div class="grid gap-2 grid-cols-[max-content_250px]">
+						${props.ATTR ? `<div class="text-sm contents">${props.ATTR}</div>` : ``}
+						${props.PSTATUS ? `<div class="text-sm contents">${props.PSTATUS}</div>` : ``}
+						${props.GTYPE ? `<div class="text-sm contents">${props.GTYPE}</div>` : ``}
+					</div>
+					<div class="text-right text-lg font-bold uppercase">
+						<a href="https://gunviolencearchive.org/incident/${props.GVAID}" target="_blank" class="hover:underline">GVA Source ↗</a>
+					</div>
+				`
+			} else if (props.COUNTY) {
 				const key = `${props.NAME}_${state?.abbr}`;
 				const incidents = countiesMap.get(key)?.counties.incidents._count;
 				const title = `${props.NAME} ${props.LSAD}, ${state?.abbr}`
@@ -258,23 +270,15 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 				}
 			} else if (state) {
 				tooltipText = `${props.NAME}`;
-			} else {
-				tooltipText = `
-					${props.CITY} - ${props.DATE}
-					<br/>
-					${props.PSTATUS ? props.PSTATUS : ``}
-					<br/>
-					${props.GTYPE ? props.GTYPE : ``}
-				`
-				// ${props.INJURED ? `<br/> ${props.INJURED} injured` : ``}
-				// ${props.KILLED ? `<br/> ${props.KILLED} killed` : ``}
 			}
-
 		}
+
+		const xModifier = props.GVAID ? 2 : 25;
+		const yModifier = props.GVAID ? -30 : 0;
 		
 		htmlTooltip.innerHTML = tooltipText;
-		htmlTooltip.style.transform = `translate(${xPosition + 25}px, ${yPosition + 25}px)`;
-		htmlTooltip.classList.add('block');
+		htmlTooltip.style.transform = `translate(${xPosition + xModifier}px, ${yPosition + yModifier}px)`;
+		htmlTooltip.classList.add('grid');
 		htmlTooltip.classList.remove('hidden');
 		document.getElementById("cesium")?.classList.add("cursor-pointer");
 	} else {
@@ -434,10 +438,30 @@ const addIncidentEntities = (data: Incident[]) => {
 		const props = new PropertyBag();
 		// props.addProperty("CD", incident.cd);
 		props.addProperty("CITY", incident.cty ? incident.cty : incident.cny);
+		props.addProperty("STATE", incident.st ? incident.st : ``);
 		props.addProperty("DATE", incident.date);
 		props.addProperty("GVAID", incident.id);
 		incident.nkill ? props.addProperty("KILLED", incident.nkill) : ``;
 		incident.ninj ? props.addProperty("INJURED", incident.ninj) : ``;
+
+		if (incident.attr) {
+			console.log(incident.attr);
+			const attr = incident.attr.split(delimPipe);
+			const attrMap = new Map();
+			attr.forEach((a: any) => {
+				if (attrMap.has(a)) {
+					attrMap.set(a, attrMap.get(a) + 1);
+				} else {
+					attrMap.set(a, 1);
+				}
+			})
+			let attrDisplay: any = "";
+			const attrMapArr = Array.from(attrMap)
+			attrMapArr.forEach((attr: any, i: number) => {
+				attrDisplay = `<div>${attrDisplay} ${attr[1]} ${attr[0]}${i !== attrMapArr.length - 1 ? `, ` : ``}</div>`
+			});
+			props.addProperty("ATTR", `<div>Attribute(s):</div>${attrDisplay}`);
+		}
 
 		if (incident.gtype) {
 			const gtype = incident.gtype.split(delimPipe).map((x: any) => x.split(delimColon)[1]);
@@ -450,12 +474,11 @@ const addIncidentEntities = (data: Incident[]) => {
 				}
 			})
 			let gTypeDisplay: any = "";
-			Array.from(typeMap).forEach((type: any) => {
-				gTypeDisplay = `
-					${gTypeDisplay} ${type[1]} ${type[0]},
-				`
+			const typeMapArr = Array.from(typeMap)
+			typeMapArr.forEach((type: any, i: number) => {
+				gTypeDisplay = `<div>${gTypeDisplay} ${type[1]} ${type[0]}${i !== typeMapArr.length - 1 ? `, ` : ``}</div>`
 			});
-			props.addProperty("GTYPE", gTypeDisplay);
+			props.addProperty("GTYPE", `<div>Gun(s):</div>${gTypeDisplay}`);
 		}
 
 		const pstatus = incident?.pstatus?.split(delimPipe).map((x: any) => x.split(delimColon)[1]);
@@ -463,17 +486,30 @@ const addIncidentEntities = (data: Incident[]) => {
 		if (pstatus?.length) {
 			const statusMap = new Map();
 			pstatus.forEach((status: any) => {
-				if (statusMap.has(status)) {
-					statusMap.set(status, statusMap.get(status) + 1);
+				// unharmed, arrested
+				if (status.includes(", ")) {
+					const newStatus = status.split(", ");
+					newStatus.forEach((ns: any) => {
+						if (statusMap.has(ns)) {
+							statusMap.set(ns, statusMap.get(ns) + 1);
+						} else {
+							statusMap.set(ns, 1);
+						}
+					})
 				} else {
-					statusMap.set(status, 1);
+					if (statusMap.has(status)) {
+						statusMap.set(status, statusMap.get(status) + 1);
+					} else {
+						statusMap.set(status, 1);
+					}
 				}
 			})
 			let pStatusDisplay: any = "";
-			Array.from(statusMap).forEach((status: any) => {
-				pStatusDisplay = `${pStatusDisplay} ${status[1]} ${status[0]},`
+			const statusMapArr = Array.from(statusMap);
+			statusMapArr.forEach((status: any, i: number) => {
+				pStatusDisplay = `<div>${pStatusDisplay} ${status[1]} ${status[0]}${i !== statusMapArr.length - 1 ? `, ` : ``}</div>`;
 			});
-			props.addProperty("PSTATUS", pStatusDisplay);
+			props.addProperty("PSTATUS", `<div>Participant(s):</div>${pStatusDisplay}`);
 		}
 
 		let color = Color.WHITE;
@@ -564,7 +600,6 @@ const setupBarChart = () => {
 			{ name: IncidentParticipantGender.Female, color: '#f472b6' },
 			{ name: IncidentParticipantGender.Male, color: '#60a5fa' }
 		]
-		// options - see https://api.highcharts.com/highcharts
 	});
 }
 
@@ -656,7 +691,7 @@ const setupTimeChart = () => {
 			}
 		},
 		title: {
-			text: 'Incidents Over Time (2014-2017)',
+			text: 'Incidents Over Time',
 			align: 'center',
 			style: {
 				color: "#fff"
@@ -1000,7 +1035,6 @@ const loadPieChartData = (data: Incident[]) => {
 			addToMap(attr, gangMap, IncidentAttribute.GangInvolvement);
 			addToMap(attr, suicideMap, IncidentAttribute.Suicide);
 			addToMap(attr, massMap, IncidentAttribute.MassShooting);
-
 		}
 	});
 
