@@ -3,7 +3,7 @@ import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty,
 import * as Highcharts from 'highcharts';
 import HC_more from "highcharts/highcharts-more";
 HC_more(Highcharts);
-import { Incident, findStateByCode, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, IncidentGunCaliber, IncidentGunType, IncidentAttribute } from "./utils";
+import { Incident, findStateByCode, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, IncidentGunCaliber, IncidentGunType, IncidentAttribute, IncidentParticipantStatus } from "./utils";
 
 const fillAlpha = .1;
 const outlineAlpha = .25;
@@ -476,18 +476,19 @@ const addIncidentEntities = (data: Incident[]) => {
 			props.addProperty("PSTATUS", pStatusDisplay);
 		}
 
-		console.log(pstatus);
-
 		let color = Color.WHITE;
 		if (Number(incident.nkill) > 0) {
 			color = Color.fromCssColorString("#b91c1c");
 		} else if (Number(incident.ninj) > 0) {
 			color = Color.fromCssColorString("#facc15");
 		} else if (pstatus?.length) {
-			// FINISH
-			// color = Color.fromCssColorString("#22c55e");
-		} else {
-			color = Color.fromCssColorString("#2563eb");
+			pstatus.forEach((status: any) => {
+				if (status.includes(IncidentParticipantStatus.Arrested)) {
+					color = Color.fromCssColorString("#22c55e");
+				} else {
+					color = Color.fromCssColorString("#2563eb");
+				}
+			})
 		}
 		const entity: any = viewer.entities.add({
 			show: true,
@@ -521,13 +522,17 @@ const setupBarChart = () => {
 		chart: {
 			type: 'column',
 			height: "100%",
+			backgroundColor: "transparent",
 			style: {
 				fontFamily: 'League Mono'
 			}
 		},
 		title: {
 			text: 'By Age Range and Gender',
-			align: 'center'
+			align: 'center',
+			style: {
+				color: "#fff"
+			}
 		},
 		xAxis: {
 			categories: [
@@ -645,13 +650,17 @@ const setupTimeChart = () => {
 	chartTime = Highcharts.chart('chartTime', {
 		chart: {
 			zoomType: 'x',
+			backgroundColor: "transparent",
 			style: {
 				fontFamily: 'League Mono'
 			}
 		},
 		title: {
 			text: 'Incidents Over Time (2014-2017)',
-			align: 'center'
+			align: 'center',
+			style: {
+				color: "#fff"
+			}
 		},
 		xAxis: {
 			type: 'datetime'
@@ -723,13 +732,17 @@ const setupBubbleChart = () => {
 		chart: {
 			type: 'packedbubble',
 			height: "100%",
+			backgroundColor: "transparent",
 			style: {
 				fontFamily: 'League Mono'
 			}
 		},
 		title: {
 			text: 'By Gun Type',
-			align: 'center'
+			align: 'center',
+			style: {
+				color: "#fff"
+			}
 		},
 		tooltip: {
 			enabled: false,
@@ -873,24 +886,28 @@ const loadBubbleChartData = (data: Incident[]) => {
 }
 
 const setupPieChart = () => {
-	// var colors = ['#AFDAF5', '#F88FB3']
-	const attrColors = ['#9DB4C0', '#0369A1', '#022C22', '#3B0764', '#713F12', '#0E2127', '#881337', '#dc2626', '#14b8a6','#ca8a04','#171717' ];
-	const statusColors= ['#facc15','#b91c1c','#22c55e','#2563eb']
 	// @ts-ignore
 	chartPie = Highcharts.chart('chartPie', {
 		chart: {
 			type: 'pie',
+			backgroundColor: "transparent",
 			style: {
 				fontFamily: 'League Mono'
 			}
 		},
 		title: {
 			text: 'By Incident Attribute',
-			align: 'center'
+			align: 'center',
+			style: {
+				color: "#fff"
+			}
 		},
 		subtitle: {
 			text: 'Click the slices to view attribute breakdown',
-			align: 'center'
+			align: 'center',
+			style: {
+				color: "#fff"
+			}
 		},
 
 		accessibility: {
@@ -923,274 +940,106 @@ const setupPieChart = () => {
 			{
 				name: 'Incident Attributes',
 				colorByPoint: true,
-				data: [
-				{
-					name: 'Accidental Shooting',
-					color: attrColors[0],
-					y: 23,
-					drilldown: 'Accidental Shooting'
-				},
-				{
-					name: 'Child Involved Incident',
-					color: attrColors[1],
-					y: 24,
-					drilldown: 'Child Involved Incident'
-				},
-				{
-					name: 'Defensive Use',
-					color: attrColors[2],
-					y: 7,
-					drilldown: 'Defensive Use'
-				},
-				{
-					name: 'Domestic Violence',
-					color: attrColors[3],
-					y: 7,
-					drilldown: 'Domestic Violence'
-				}
-				,
-				{
-					name: 'Drug Involvement',
-					color: attrColors[4],
-					y: 7,
-					drilldown: 'Drug Involvement'
-				},
-				{
-					name: 'Gang Involvement',
-					color: attrColors[5],
-					y: 7,
-					drilldown: 'Gang Involvement'
-				}, 
-				{
-					name: 'Home Invasion',
-					color: attrColors[6],
-					y: 10,
-					drilldown: 'Home Invasion'
-				},
-				{
-					name: 'Mass Shooting',
-					color: attrColors[7],
-					y: 16,
-					drilldown: 'Mass Shooting'
-				},
-				{
-					name: 'Officer Involved Shooting',
-					color: attrColors[8],
-					y: 16,
-					drilldown: 'Officer Involved Shooting'
-				}
-				,
-				{
-					name: 'School Shooting',
-					color: attrColors[9],
-					y: 16,
-					drilldown: 'School Shooting'
-				},
-				{
-					name: 'Suicide',
-					color: attrColors[10],
-					y: 10,
-					drilldown: 'Suicide'
-				}
-			]
 			}
 		],
+		
 		drilldown: {
-			series: [{
-				name: 'Gang Violence',
-				id: 'Gang Violence',
-				data: [{
-					name: 'Injured',
-					y: 70,
-					color: statusColors[0]
-				},
-				{
-					name: 'Killed',
-					y: 10,
-					color: statusColors[1]
-				},
-				{
-					name: 'Unharmed',
-					y: 10,
-					color: statusColors[2]
-				},
-				{
-					name: 'Arrested',
-					y: 10,
-					color: statusColors[3]
-				}]
-			}, {
-				name: 'Home Invasion',
-				id: 'Home Invasion',
-				data: [{
-					name: 'Injured',
-					y: 70,
-					color: statusColors[0]
-				},
-				{
-					name: 'Killed',
-					y: 10,
-					color: statusColors[1]
-				},
-				{
-					name: 'Unharmed',
-					y: 10,
-					color: statusColors[2]
-				},
-				{
-					name: 'Arrested',
-					y: 10,
-					color: statusColors[3]
-				}]
-			}, {
-				name: 'Defensive Use',
-				id: 'Defensive Use',
-				data: [{
-					name: 'Injured',
-					y: 70,
-					color: statusColors[0]
-				},
-				{
-					name: 'Killed',
-					y: 10,
-					color: statusColors[1]
-				},
-				{
-					name: 'Unharmed',
-					y: 10,
-					color: statusColors[2]
-				},
-				{
-					name: 'Arrested',
-					y: 10,
-					color: statusColors[3]
-				}]
-			}, {
-				name: 'Child Involved Incident',
-				id: 'Child Involved Incident',
-				data: [{
-					name: 'Injured',
-					y: 70,
-					color: statusColors[0]
-				},
-				{
-					name: 'Killed',
-					y: 10,
-					color: statusColors[1]
-				},
-				{
-					name: 'Unharmed',
-					y: 10,
-					color: statusColors[2]
-				},
-				{
-					name: 'Arrested',
-					y: 10,
-					color: statusColors[3]
-				}]
-			}, {
-				name: 'Accidental Shooting',
-				id: 'Accidental Shooting',
-				data: [{
-					name: 'Injured',
-					y: 70,
-					color: statusColors[0]
-				},
-				{
-					name: 'Killed',
-					y: 10,
-					color: statusColors[1]
-				},
-				{
-					name: 'Unharmed',
-					y: 10,
-					color: statusColors[2]
-				},
-				{
-					name: 'Arrested',
-					y: 10,
-					color: statusColors[3]
-				}]
-			}, {
-				name: 'Other',
-				id: 'Other',
-				data: [{
-					name: 'Injured',
-					y: 70,
-					color: statusColors[0]
-				},
-				{
-					name: 'Killed',
-					y: 10,
-					color: statusColors[1]
-				},
-				{
-					name: 'Unharmed',
-					y: 10,
-					color: statusColors[2]
-				},
-				{
-					name: 'Arrested',
-					y: 10,
-					color: statusColors[3]
-				}]
-			}]
+			series: [
+
+			]
 		}
 	});
-	console.log(chartPie)
 }
 
 const loadPieChartData = (data: Incident[]) => {
-	const accidentalMap = new Map([
-		[`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Injury}`, 0],
-		[`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Death}`, 0],
-		[`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Business}`, 0],
-		[`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`, 0],
-	]);
-	// const childMap = new Map();
-	data.forEach((d: any) => {
 
-		const attr = d.attr?.split(delimPipe);
+	const attrColors = ['#9DB4C0', '#0369A1', '#022C22', '#3B0764', '#713F12', '#0E2127', '#881337', '#dc2626', '#14b8a6','#ca8a04','#171717' ];
+	const attrDesc = [IncidentAttribute.AccidentalShooting, IncidentAttribute.ChildInvolvedIncident, IncidentAttribute.DefensiveUse, IncidentAttribute.HomeInvasion, IncidentAttribute.SchoolIncident, IncidentAttribute.DomesticViolence, IncidentAttribute.DrugInvolvement, IncidentAttribute.GangInvolvement, IncidentAttribute.Suicide, IncidentAttribute.MassShooting]
 
-		if (attr) {
+	const pattern = " - ";
+	const accidentalMap = new Map([[`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`, 0]]);
+	const childMap = new Map([[`${IncidentAttribute.ChildInvolvedIncident}|${STR_UNKNOWN}`, 0]]);
+	const defensiveMap = new Map([[`${IncidentAttribute.DefensiveUse}|${STR_UNKNOWN}`, 0]]);
+	const homeMap = new Map([[`${IncidentAttribute.HomeInvasion}|${STR_UNKNOWN}`, 0]]);
+	const schoolMap = new Map([[`${IncidentAttribute.SchoolIncident}|${STR_UNKNOWN}`, 0]]);
+	const domesticMap = new Map([[`${IncidentAttribute.DomesticViolence}|${STR_UNKNOWN}`, 0]]);
+	const drugMap = new Map([[`${IncidentAttribute.DrugInvolvement}|${STR_UNKNOWN}`, 0]]);
+	const gangMap = new Map([[`${IncidentAttribute.GangInvolvement}|${STR_UNKNOWN}`, 0]]);
+	const suicideMap = new Map([[`${IncidentAttribute.Suicide}|${STR_UNKNOWN}`, 0]]);
+	const massMap = new Map([[`${IncidentAttribute.MassShooting}|${STR_UNKNOWN}`, 0]]);
 
-			const accidental = attr?.filter((a: any) => a.includes(IncidentAttribute.AccidentalShooting)).map((a: any) => a.replace(IncidentAttribute.AccidentalShooting, ""));
-			if (accidental?.length === 1) {
-				accidentalMap.set(
-					`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`,
-					accidentalMap.get(`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`)! + 1);
-			} else if (accidental?.length) {
-				accidental?.forEach((a: any) => {
-					if (!a) {
-						accidentalMap.set(
-							`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`,
-							accidentalMap.get(`${IncidentAttribute.AccidentalShooting}|${STR_UNKNOWN}`)! + 1);
-					} else if (a.includes(IncidentAttribute.Business)) {
-						accidentalMap.set(
-							`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Business}`,
-							accidentalMap.get(`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Business}`)! + 1);
-					} else if (a.includes(IncidentAttribute.Injury)) {
-						accidentalMap.set(
-							`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Injury}`,
-							accidentalMap.get(`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Business}`)! + 1);
-					} else if (a.includes(IncidentAttribute.Death)) {
-						accidentalMap.set(
-							`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Death}`,
-							accidentalMap.get(`${IncidentAttribute.AccidentalShooting}|${IncidentAttribute.Death}`)! + 1);
-					}
-				})
-			}
-
-			const children = attr.filter((a: any) => a.includes(IncidentAttribute.ChildInvolvedIncident));
-
-			if (children?.length) {
-				// console.log(children);
-			}
+	const addToMap = (attr: any, map: any, key: any, includes?: any, replace?: any) => {
+		const filter = attr?.filter((a: any) => a.includes(includes ? includes : key)).map((a: any) => a.replace(replace ? replace : key, ""));
+		if (filter?.length === 1) {
+			map.set(`${key}|${STR_UNKNOWN}`, map.get(`${key}|${STR_UNKNOWN}`)! + 1);
+		} else if (filter?.length) {
+			filter.shift();
+			filter?.forEach((a: any) => {
+				const rep = a.replace(pattern, "").trim();
+				if (!rep) {
+					map.set(`${key}|${STR_UNKNOWN}`, map.get(`${key}|${STR_UNKNOWN}`)! + 1);
+				} else if (map.get(`${key}|${rep}`)) {
+					map.set(`${key}|${rep}`, map.get(`${key}|${rep}`)! + 1);
+				} else {
+					map.set(`${key}|${rep}`, 1);
+				}
+			})
 		}
+	}
 
+	data.forEach((d: any) => {
+		const attr = d.attr?.split(delimPipe);
+		if (attr) {
+			addToMap(attr, accidentalMap, IncidentAttribute.AccidentalShooting);
+			addToMap(attr, childMap, IncidentAttribute.ChildInvolvedIncident, "Child");
+			addToMap(attr, defensiveMap, IncidentAttribute.DefensiveUse);
+			addToMap(attr, homeMap, IncidentAttribute.HomeInvasion);
+			addToMap(attr, schoolMap, IncidentAttribute.SchoolIncident, "School", "School Shooting");
+			addToMap(attr, domesticMap, IncidentAttribute.DomesticViolence);
+			addToMap(attr, drugMap, IncidentAttribute.DrugInvolvement);
+			addToMap(attr, gangMap, IncidentAttribute.GangInvolvement);
+			addToMap(attr, suicideMap, IncidentAttribute.Suicide);
+			addToMap(attr, massMap, IncidentAttribute.MassShooting);
 
+		}
 	});
-	console.log(accidentalMap);
+
+	const allMaps = [accidentalMap, childMap, defensiveMap, homeMap, schoolMap, domesticMap, drugMap, gangMap, suicideMap, massMap];
+	const allMapData: any = [];
+	const allMapDrilldowns: any = [];
+
+	allMaps.forEach((map: any, i: number) => {
+		const key = attrDesc[i];
+		const drilldowns: any = {
+			name: key,
+			id: key,
+			data: []
+		}
+		let total = 0;
+		const drilldownData = Array.from(map).map((m: any) => {
+			total = total + m[1];
+			return [m[0].split("|")[1], m[1]]
+		});
+		drilldowns["data"] = drilldownData;
+		console.log(total, data.length);
+		allMapData.push({
+			name: key,
+			drilldown: key,
+			color: attrColors[i], 
+			y: total
+		});
+		allMapDrilldowns.push(drilldowns);
+	})
+
+	chartPie.series[0].setData(allMapData);
+
+	// console.log(chartPie.setDrilldown({
+
+	// }))
+	// allMapDrilldowns.forEach((d: any) => {
+	// 	chartPie.drilldown.series[0].setData(d);
+	// })
+	
 }
 
 const updateDataViews = (data: Incident[], title: string) => {

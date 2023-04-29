@@ -106,16 +106,13 @@ export enum IncidentAttribute {
     ChildInvolvedIncident = "Child Involved Incident",
     DefensiveUse = "Defensive Use",
     DomesticViolence = "Domestic Violence",
-    DrugInvolvement = "Drug Involvement",
-    GangInvolvement = "Gang Involvement",
+    DrugInvolvement = "Drug involvement",
+    GangInvolvement = "Gang involvement",
     HomeInvasion = "Home Invasion",
     MassShooting = "Mass Shooting",
     OfficerInvolvedIncident = "Officer Involved Incident",
     SchoolIncident = "School Incident",
-    Suicide = "Suicide",
-    Injury = "Injury",
-    Death = "Death",
-    Business = "Business"
+    Suicide = "Suicide"
 }
 
 interface UsState {

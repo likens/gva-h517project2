@@ -40,6 +40,20 @@ body {
 	display: none !important;
 }
 
+::-webkit-scrollbar {
+	width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+	background: rgb(51 65 85);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+	background: rgb(30 41 59);
+}
+
 @media (prefers-color-scheme: light) {
 	:root {
 		color: #213547;
