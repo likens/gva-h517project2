@@ -36,9 +36,20 @@
 						<div id="breadcrumb" class="flex absolute top-5 left-5 z-20 bg-slate-800 font-bold text-xl">
 							<div id="usa" class="cursor-pointer hover:bg-slate-500 p-2">USA</div>
 							<div id="state" class="cursor-pointer hover:bg-slate-500 hidden p-2"></div>
-							<div id="county" class="hidden p-2"></div>
+							<div id="countyDistrict" class="hidden p-2"></div>
 						</div>
 						<div id="tooltip" class="hidden absolute top-0 left-0 bg-slate-700 text-white border-slate-500 border-solid border font-bold py-2 px-4 z-20 gap-2 !cursor-auto"></div>
+						<div id="overlay" class="hidden absolute top-0 left-0 bg-slate-700 text-white border-slate-500 border-solid border font-bold py-2 px-4 z-20 gap-2 !cursor-auto">
+							<div class="flex justify-between items-center gap-3">
+								<div id="overlayTitle" class="text-center text-xl"></div>
+								<button title="Close" type="button" class="p-0 m-0 bg-none border-none text-xl text-center" onClick="document.getElementById('overlay').classList.add('hidden')">X</button>
+							</div>
+							<div id="overlayContent"></div>
+						</div>
+						<!-- <div id="stateFork" class="hidden absolute top-0 left-0 z-20 gap-2 w-[120px] !cursor-auto">
+							<button id="stateCounties" type="button" class="bg-slate-800 hover:bg-slate-500 text-white font-bold py-2 px-4">Counties</button>
+							<button id="stateDistricts" type="button" class="bg-slate-800 hover:bg-slate-500 text-white font-bold py-2 px-4">Districts</button>
+						</div> -->
 					</div>
 				</div>
 

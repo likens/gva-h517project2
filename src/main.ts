@@ -14,7 +14,7 @@ const delimColon = "::";
 
 let mapView = "USA";
 let mapActiveState = "";
-let mapActiveCounty = "";
+let mapActiveCountyDistrict = "";
 
 const mapIncidentEntities: any[] = [];
 
@@ -28,9 +28,6 @@ let highlightedEntities: any[] = [];
 let cdEntities: any[] = [];
 let cnyEntities: any[] = [];
 let stEntities: any[] = [];
-
-let countiesMap = new Map();
-let cdMap = new Map();
 
 const MAPBOX_API_KEY: any = import.meta.env.VITE_MAPBOX_API_KEY;
 
@@ -57,9 +54,15 @@ const camera = viewer.camera;
 const handler = viewer.screenSpaceEventHandler;
 
 let htmlTooltip = document.getElementById("tooltip")!;
+let htmlOverlay = document.getElementById("overlay")!;
+let overlayTitle = document.getElementById("overlayTitle")!;
+let overlayContent = document.getElementById("overlayContent")!;
+// let stateFork = document.getElementById("stateFork")!;
+// let stateCounties = document.getElementById("stateCounties")!;
+// let stateDistricts = document.getElementById("stateDistricts")!;
 const usaNav: any = document.getElementById("usa");
 const stateNav: any = document.getElementById("state");
-const countyNav: any = document.getElementById("county");
+const countyDistrictNav: any = document.getElementById("countyDistrict");
 const ellipsis: any = document.getElementById("ellipsis");
 const splash: any = document.getElementById("splash");
 
@@ -96,23 +99,27 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 		if (mapView !== "USA") {
 			mapView = "USA";
 			mapActiveState = "";
-			mapActiveCounty = "";
-			stEntities.forEach((entity: any) => entity.show = true)
-			cnyEntities.forEach((entity: any) => entity.show = false)
+			mapActiveCountyDistrict = "";
+			stEntities.forEach((entity: any) => entity.show = true);
+			cnyEntities.forEach((entity: any) => entity.show = false);
+			// cdEntities.forEach((entity: any) => entity.show = false);
 			clearIncidentEntities();
 			camera.flyTo(HOME_CAMERA);
 			stateNav.classList.add("hidden");
 			stateNav.innerHTML = "";
-			countyNav.classList.add("hidden");
-			countyNav.innerHTML = "";
+			countyDistrictNav.classList.add("hidden");
+			countyDistrictNav.innerHTML = "";
 			updateDataViews(allData, 'USA');
+			htmlOverlay.classList.add("hidden");
+			// stateFork.classList.remove("grid");
+			// stateFork.classList.add("hidden");
 		}
 	})
 	
 	stateNav?.addEventListener('click', () => {
 		if (mapView !== "ST") {
 			mapView = "ST";
-			mapActiveCounty = "";
+			mapActiveCountyDistrict = "";
 			stEntities.forEach((entity: any) => {
 				const props = entity.properties;
 				if (props.STATE.getValue() === mapActiveState) {
@@ -130,15 +137,19 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 					entity.show = false;
 				}
 			})
-			countyNav.innerHTML = "";
-			countyNav.classList.add("hidden");
+			// cdEntities.forEach((entity: any) => entity.show = false);
+			countyDistrictNav.innerHTML = "";
+			countyDistrictNav.classList.add("hidden");
 			
 			const incidentData = allData.filter((incident: Incident) => incident.st === findStateByCode(mapActiveState)?.abbr);
 
 			clearIncidentEntities();
 			updateDataViews(incidentData, stateNav.innerHTML);
+			htmlOverlay.classList.add("hidden");
+			// stateFork.classList.add("grid");
+			// stateFork.classList.remove("hidden");
 		}
-	})
+	});
 
 	allData = data[0];
 	setupInitCamera();
@@ -149,6 +160,42 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 	setupPieChart();
 	updateDataViews(data[0], 'USA');
 	jsonLoaded = true;
+
+	// stateCounties.addEventListener('click', () => {
+	// 	// go through all counties
+	// 	// show only the counties that
+	// 	// are in the picked state
+	// 	cnyEntities.forEach((entity: any) => {
+	// 		const props = entity.properties;
+	// 		// show "sibling" counties,
+	// 		// hide all others
+	// 		if (mapActiveState === props.STATE.getValue()) {
+	// 			entity.show = true;
+	// 			stateFork.classList.remove("grid");
+	// 			stateFork.classList.add("hidden");
+	// 		} else {
+	// 			entity.show = false;
+	// 		}
+	// 	})
+	// })
+
+	// stateDistricts.addEventListener('click', () => {
+	// 	// go through all districts
+	// 	// show only the districts that
+	// 	// are in the picked state
+	// 	cdEntities.forEach((entity: any) => {
+	// 		const props = entity.properties;
+	// 		// show "sibling" districts,
+	// 		// hide all others
+	// 		if (mapActiveState === props.STATE.getValue()) {
+	// 			entity.show = true;
+	// 			stateFork.classList.remove("grid");
+	// 			stateFork.classList.add("hidden");
+	// 		} else {
+	// 			entity.show = false;
+	// 		}
+	// 	})
+	// })
 
 })
 
@@ -236,45 +283,22 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 				highlightedEntities = stEntities.filter(e => e.properties?.getValue(JulianDate.now()).GEO_ID === props.GEO_ID);
 			}
 
-			const state = findStateByCode(props.STATE);
-
 			if (props.GVAID) {
-				tooltipText = `
-					<div class="uppercase text-center text-xl">${props.CITY}, ${props.STATE} - ${props.DATE}</div>
-					<div class="grid gap-2 grid-cols-[max-content_250px]">
-						${props.ATTR ? `<div class="text-sm contents">${props.ATTR}</div>` : ``}
-						${props.PSTATUS ? `<div class="text-sm contents">${props.PSTATUS}</div>` : ``}
-						${props.GTYPE ? `<div class="text-sm contents">${props.GTYPE}</div>` : ``}
-					</div>
-					<div class="text-right text-lg font-bold uppercase">
-						<a href="https://gunviolencearchive.org/incident/${props.GVAID}" target="_blank" class="hover:underline">GVA Source ↗</a>
-					</div>
-				`
+				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.CITY}, ${props.STATE} - ${props.DATE}</div><div class="text-sm">(click for details)</div></div>`
 			} else if (props.COUNTY) {
-				const key = `${props.NAME}_${state?.abbr}`;
-				const incidents = countiesMap.get(key)?.counties.incidents._count;
-				const title = `${props.NAME} ${props.LSAD}, ${state?.abbr}`
-				if (!incidents) {
-					tooltipText = `${title}`;
-				} else {
-					tooltipText= `${title}`;
-				}
+				const title = `${props.NAME} ${props.LSAD}, ${findStateByCode(props.STATE)?.abbr}`
+				tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">incidents</div></div>`;
 			} else if (props.CD) {
-				const key = `${props.CD}_${state?.abbr}`;
-				const incidents = cdMap.get(key)?.districts.incidents._count;
-				const title = `District ${props.CD}, ${state?.abbr}`
-				if (!incidents) {
-					tooltipText = `${title}`;
-				} else {
-					tooltipText = `${title}`;
-				}
-			} else if (state) {
-				tooltipText = `${props.NAME}`;
+				const title = `District #${props.CD}, ${findStateByCode(props.STATE)?.abbr}`
+				tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">incidents</div></div>`;
+			} else {
+				const total = allData.filter((d: any) => d.st === findStateByCode(props.STATE)?.abbr).length
+				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.NAME}</div><div class="text-sm">${total.toLocaleString()} incidents</div></div>`;
 			}
 		}
 
-		const xModifier = props.GVAID ? 2 : 25;
-		const yModifier = props.GVAID ? -30 : 0;
+		const xModifier = 25// props.GVAID ? 2 : 25;
+		const yModifier = 0// props.GVAID ? -30 : 0;
 		
 		htmlTooltip.innerHTML = tooltipText;
 		htmlTooltip.style.transform = `translate(${xPosition + xModifier}px, ${yPosition + yModifier}px)`;
@@ -298,16 +322,14 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 		const entityName = props.NAME?.getValue();
 		const entityState = props.STATE?.getValue();
 		const entityLSAD = props.LSAD?.getValue();
-		const entityType = props.TYPE.getValue();
+		const entityType = props.TYPE?.getValue();
 		// const entityCD = props.CD?.getValue();
-		mapView = props.TYPE.getValue();
-		
-		console.log(entityType, "picked")
 
 		if (entityType === "ST") {
 
-			countyNav.classList.add("hidden");
-			countyNav.innerHTML = "";
+			mapView = props.TYPE.getValue();
+			countyDistrictNav.classList.add("hidden");
+			countyDistrictNav.innerHTML = "";
 			stateNav.classList.remove("hidden");
 			stateNav.innerHTML = entityName;
 			mapActiveState = entityState;
@@ -331,6 +353,15 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 							entity.show = false;
 						}
 					})
+					// const center = BoundingSphere.fromPoints(pickedEntity.id.polygon.hierarchy.getValue().positions).center;
+					// stateFork.classList.remove("hidden");
+					// stateFork.classList.add("grid");
+
+					// viewer.scene.preRender.addEventListener(() => {
+					// 	const position = viewer.scene.cartesianToCanvasCoordinates(center, new Cartesian2());
+					// 	stateFork.style.transform = `translate(${position.x - 50}px, ${position.y - 50}px)`;
+					// });
+
 				} else {
 					entity.show = true;
 				}
@@ -338,15 +369,17 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 
 			clearIncidentEntities();
 			updateDataViews(incidentData, entityName);
+			htmlOverlay.classList.add("hidden");
+			flyToPolygon(pickedEntity.id.polygon);
 
 		} else if (entityType === "CNY") {
 
+			mapView = props.TYPE.getValue();
 			const countyFull = `${entityName}${entityLSAD ? ` ${entityLSAD}` : ``}`;
-			countyNav.classList.remove("hidden");
-			countyNav.innerHTML = countyFull;
-			mapActiveCounty = countyFull;
+			countyDistrictNav.classList.remove("hidden");
+			countyDistrictNav.innerHTML = countyFull;
+			mapActiveCountyDistrict = countyFull;
 			const stateProp = props.STATE.getValue();
-			console.log(mapActiveCounty, "was picked");
 
 			cnyEntities.forEach((entity: any) => {
 				const props = entity.properties;
@@ -377,10 +410,74 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			clearIncidentEntities();
 			addIncidentEntities(incidentData);
 			updateDataViews(incidentData, `${countyFull}, ${findStateByCode(stateProp)?.abbr}`);
+			htmlOverlay.classList.add("hidden");
+			flyToPolygon(pickedEntity.id.polygon);
+
+		} else if (entityType === "CD") {
+
+			mapView = props.TYPE.getValue();
+			const entityCD = props.CD.getValue();
+			const cdFull = `District #${entityName}`;
+			countyDistrictNav.classList.remove("hidden");
+			countyDistrictNav.innerHTML = cdFull;
+			mapActiveCountyDistrict = cdFull;
+			const stateProp = props.STATE.getValue();
+
+			cdEntities.forEach((entity: any) => {
+				const props = entity.properties;
+				// show "sibling" district,
+				// hide all others
+				if (entityState === props.STATE.getValue()) {
+					entity.show = true;
+				} else {
+					entity.show = false;
+				}
+			});
+
+			// hide our picked district
+			pickedEntity.id.show = false;
+
+			const incidentData = allData.filter((incident: Incident) => {
+				if (incident.cd && incident.st === findStateByCode(stateProp)?.abbr) {
+					const cd = incident.cd.length === 1 ? `0${incident.cd}` : incident.cd;
+					if (cd === entityCD) {
+						console.log(entityCD, cd);
+						return incident;
+					}
+				}
+				
+				return;
+			});
+
+			clearIncidentEntities();
+			addIncidentEntities(incidentData);
+			updateDataViews(incidentData, `${cdFull}, ${findStateByCode(stateProp)?.abbr}`);
+			htmlOverlay.classList.add("hidden");
+			flyToPolygon(pickedEntity.id.polygon);
+			
+		} else if (props.GVAID) {
+			const pos = pickedEntity.id.position.getValue(viewer.clock.currentTime);
+			htmlOverlay.classList.remove("hidden");
+			htmlOverlay.classList.add("grid");
+			const incidentTitle = `${props.CITY}, ${props.STATE} - ${props.DATE}`;
+			const incidentContent = `
+				<div class="grid gap-2 grid-cols-[max-content_minmax(250px,_400px)]">
+					${props.ATTR ? `<div class="text-sm contents">${props.ATTR}</div>` : ``}
+					${props.PSTATUS ? `<div class="text-sm contents">${props.PSTATUS}</div>` : ``}
+					${props.GTYPE ? `<div class="text-sm contents">${props.GTYPE}</div>` : ``}
+				</div>
+				<div class="text-right text-lg font-bold uppercase">
+					<a href="https://gunviolencearchive.org/incident/${props.GVAID}" target="_blank" class="hover:underline">GVA Source ↗</a>
+				</div>
+			`;
+			overlayTitle.innerHTML = incidentTitle;
+			overlayContent.innerHTML = incidentContent;
+			viewer.scene.preRender.addEventListener(() => {
+				const position = viewer.scene.cartesianToCanvasCoordinates(pos, new Cartesian2());
+				htmlOverlay.style.transform = `translate(${position.x + 5}px, ${position.y}px)`;
+			})
 
 		}
-
-		flyToPolygon(pickedEntity.id.polygon);
 
 	}
 
@@ -436,7 +533,7 @@ const addIncidentEntities = (data: Incident[]) => {
 	data.forEach((incident: Incident) => {
 
 		const props = new PropertyBag();
-		// props.addProperty("CD", incident.cd);
+		props.addProperty("DISTRICT", incident.cd);
 		props.addProperty("CITY", incident.cty ? incident.cty : incident.cny);
 		props.addProperty("STATE", incident.st ? incident.st : ``);
 		props.addProperty("DATE", incident.date);
@@ -445,7 +542,6 @@ const addIncidentEntities = (data: Incident[]) => {
 		incident.ninj ? props.addProperty("INJURED", incident.ninj) : ``;
 
 		if (incident.attr) {
-			console.log(incident.attr);
 			const attr = incident.attr.split(delimPipe);
 			const attrMap = new Map();
 			attr.forEach((a: any) => {
@@ -458,9 +554,9 @@ const addIncidentEntities = (data: Incident[]) => {
 			let attrDisplay: any = "";
 			const attrMapArr = Array.from(attrMap)
 			attrMapArr.forEach((attr: any, i: number) => {
-				attrDisplay = `<div>${attrDisplay} ${attr[1]} ${attr[0]}${i !== attrMapArr.length - 1 ? `, ` : ``}</div>`
+				attrDisplay = `${attrDisplay} <div>${attr[0]}${i !== attrMapArr.length - 1 ? `, ` : ``}</div>`
 			});
-			props.addProperty("ATTR", `<div>Attribute(s):</div>${attrDisplay}`);
+			props.addProperty("ATTR", `<div>Attribute(s):</div><div>${attrDisplay}</div>`);
 		}
 
 		if (incident.gtype) {
@@ -476,9 +572,9 @@ const addIncidentEntities = (data: Incident[]) => {
 			let gTypeDisplay: any = "";
 			const typeMapArr = Array.from(typeMap)
 			typeMapArr.forEach((type: any, i: number) => {
-				gTypeDisplay = `<div>${gTypeDisplay} ${type[1]} ${type[0]}${i !== typeMapArr.length - 1 ? `, ` : ``}</div>`
+				gTypeDisplay = `${gTypeDisplay} <div>${type[1]} ${type[0]}${i !== typeMapArr.length - 1 ? `, ` : ``}</div>`
 			});
-			props.addProperty("GTYPE", `<div>Gun(s):</div>${gTypeDisplay}`);
+			props.addProperty("GTYPE", `<div>Gun(s):</div><div>${gTypeDisplay}</div>`);
 		}
 
 		const pstatus = incident?.pstatus?.split(delimPipe).map((x: any) => x.split(delimColon)[1]);
@@ -507,9 +603,9 @@ const addIncidentEntities = (data: Incident[]) => {
 			let pStatusDisplay: any = "";
 			const statusMapArr = Array.from(statusMap);
 			statusMapArr.forEach((status: any, i: number) => {
-				pStatusDisplay = `<div>${pStatusDisplay} ${status[1]} ${status[0]}${i !== statusMapArr.length - 1 ? `, ` : ``}</div>`;
+				pStatusDisplay = `${pStatusDisplay} <div>${status[1]} ${status[0]}${i !== statusMapArr.length - 1 ? `, ` : ``}</div>`;
 			});
-			props.addProperty("PSTATUS", `<div>Participant(s):</div>${pStatusDisplay}`);
+			props.addProperty("PSTATUS", `<div>Participant(s):</div><div>${pStatusDisplay}</div>`);
 		}
 
 		let color = Color.WHITE;
@@ -549,7 +645,7 @@ const flyToPolygon = (polygon: any) => {
 }
 
 const updateIncidentTotal = (total: number, name: string) => {
-	incidentTotal.innerHTML = `${total} total incidents <br/> within ${name}`;
+	incidentTotal.innerHTML = `${total.toLocaleString()} total incidents <br/> within ${name}`;
 }
 
 const setupBarChart = () => {
@@ -691,7 +787,14 @@ const setupTimeChart = () => {
 			}
 		},
 		title: {
-			text: 'Incidents Over Time',
+			text: 'Incidents Per Day',
+			align: 'center',
+			style: {
+				color: "#fff"
+			}
+		},
+		subtitle: {
+			text: 'Click and drag to zoom into a time period',
 			align: 'center',
 			style: {
 				color: "#fff"
@@ -1055,7 +1158,7 @@ const loadPieChartData = (data: Incident[]) => {
 			return [m[0].split("|")[1], m[1]]
 		});
 		drilldowns["data"] = drilldownData;
-		console.log(total, data.length);
+		// console.log(total, data.length);
 		allMapData.push({
 			name: key,
 			drilldown: key,
