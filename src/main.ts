@@ -14,7 +14,7 @@ const delimColon = "::";
 
 let mapView = "USA";
 let mapActiveState = "";
-let mapActiveCountyDistrict = "";
+// let mapActiveCountyDistrict = "";
 
 const mapIncidentEntities: any[] = [];
 
@@ -99,7 +99,7 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 		if (mapView !== "USA") {
 			mapView = "USA";
 			mapActiveState = "";
-			mapActiveCountyDistrict = "";
+			// mapActiveCountyDistrict = "";
 			stEntities.forEach((entity: any) => entity.show = true);
 			cnyEntities.forEach((entity: any) => entity.show = false);
 			// cdEntities.forEach((entity: any) => entity.show = false);
@@ -119,7 +119,7 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 	stateNav?.addEventListener('click', () => {
 		if (mapView !== "ST") {
 			mapView = "ST";
-			mapActiveCountyDistrict = "";
+			// mapActiveCountyDistrict = "";
 			stEntities.forEach((entity: any) => {
 				const props = entity.properties;
 				if (props.STATE.getValue() === mapActiveState) {
@@ -381,7 +381,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			const countyFull = `${entityName}${entityLSAD ? ` ${entityLSAD}` : ``}`;
 			countyDistrictNav.classList.remove("hidden");
 			countyDistrictNav.innerHTML = countyFull;
-			mapActiveCountyDistrict = countyFull;
+			// mapActiveCountyDistrict = countyFull;
 			const stateProp = props.STATE.getValue();
 
 			cnyEntities.forEach((entity: any) => {
@@ -416,49 +416,51 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			htmlOverlay.classList.add("hidden");
 			flyToPolygon(pickedEntity.id.polygon);
 
-		} else if (entityType === "CD") {
+		} 
+		// else if (entityType === "CD") {
 
-			mapView = props.TYPE.getValue();
-			const entityCD = props.CD.getValue();
-			const cdFull = `District #${entityName}`;
-			countyDistrictNav.classList.remove("hidden");
-			countyDistrictNav.innerHTML = cdFull;
-			mapActiveCountyDistrict = cdFull;
-			const stateProp = props.STATE.getValue();
+		// 	mapView = props.TYPE.getValue();
+		// 	const entityCD = props.CD.getValue();
+		// 	const cdFull = `District #${entityName}`;
+		// 	countyDistrictNav.classList.remove("hidden");
+		// 	countyDistrictNav.innerHTML = cdFull;
+		// 	mapActiveCountyDistrict = cdFull;
+		// 	const stateProp = props.STATE.getValue();
 
-			cdEntities.forEach((entity: any) => {
-				const props = entity.properties;
-				// show "sibling" district,
-				// hide all others
-				if (entityState === props.STATE.getValue()) {
-					entity.show = true;
-				} else {
-					entity.show = false;
-				}
-			});
+		// 	cdEntities.forEach((entity: any) => {
+		// 		const props = entity.properties;
+		// 		// show "sibling" district,
+		// 		// hide all others
+		// 		if (entityState === props.STATE.getValue()) {
+		// 			entity.show = true;
+		// 		} else {
+		// 			entity.show = false;
+		// 		}
+		// 	});
 
-			// hide our picked district
-			pickedEntity.id.show = false;
+		// 	// hide our picked district
+		// 	pickedEntity.id.show = false;
 
-			const incidentData = allData.filter((incident: Incident) => {
-				if (incident.cd && incident.st === findStateByCode(stateProp)?.abbr) {
-					const cd = incident.cd.length === 1 ? `0${incident.cd}` : incident.cd;
-					if (cd === entityCD) {
-						console.log(entityCD, cd);
-						return incident;
-					}
-				}
+		// 	const incidentData = allData.filter((incident: Incident) => {
+		// 		if (incident.cd && incident.st === findStateByCode(stateProp)?.abbr) {
+		// 			const cd = incident.cd.length === 1 ? `0${incident.cd}` : incident.cd;
+		// 			if (cd === entityCD) {
+		// 				console.log(entityCD, cd);
+		// 				return incident;
+		// 			}
+		// 		}
 				
-				return;
-			});
+		// 		return;
+		// 	});
 
-			clearIncidentEntities();
-			addIncidentEntities(incidentData);
-			updateDataViews(incidentData, `${cdFull}, ${findStateByCode(stateProp)?.abbr}`);
-			htmlOverlay.classList.add("hidden");
-			flyToPolygon(pickedEntity.id.polygon);
+		// 	clearIncidentEntities();
+		// 	addIncidentEntities(incidentData);
+		// 	updateDataViews(incidentData, `${cdFull}, ${findStateByCode(stateProp)?.abbr}`);
+		// 	htmlOverlay.classList.add("hidden");
+		// 	flyToPolygon(pickedEntity.id.polygon);
 			
-		} else if (props.GVAID) {
+		// } 
+		else if (props.GVAID) {
 			const pos = pickedEntity.id.position.getValue(viewer.clock.currentTime);
 			htmlOverlay.classList.remove("hidden");
 			htmlOverlay.classList.add("grid");
