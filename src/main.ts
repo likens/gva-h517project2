@@ -238,14 +238,14 @@ const getCurrentCamera = () => {
 	}
 }
 
-const updateMaterial = (entity: Entity, color: Color) => {
+const updateMaterial = (entity: Entity, color: Color, alpha = true) => {
 	const colorProperty = new CallbackProperty((_t, r) => {
 		if (highlightedEntities.length) {
 			if (highlightedEntities.find((e: Entity) => e.id === entity.id)) {
-				return Color.clone(Color.WHITE.withAlpha(highlightAlpha), r);
+				return Color.clone(!alpha ? Color.WHITE : Color.WHITE.withAlpha(highlightAlpha), r);
 			}
 		}
-		return Color.clone(color, r);
+		return Color.clone(!alpha ? color : color.withAlpha(fillAlpha), r);
 	}, false);
 	
 	return new ColorMaterialProperty(colorProperty);
@@ -286,12 +286,15 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 			if (props.GVAID) {
 				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.CITY}, ${props.STATE} - ${props.DATE}</div><div class="text-sm">(click for details)</div></div>`
 			} else if (props.COUNTY) {
-				const title = `${props.NAME} ${props.LSAD}, ${findStateByCode(props.STATE)?.abbr}`
-				tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">incidents</div></div>`;
-			} else if (props.CD) {
-				const title = `District #${props.CD}, ${findStateByCode(props.STATE)?.abbr}`
-				tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">incidents</div></div>`;
-			} else {
+				const title = `${props.NAME} ${props.LSAD}, ${findStateByCode(props.STATE)?.abbr}`;
+				const total = allData.filter((d: any) => d.st === findStateByCode(props.STATE)?.abbr && d.cny === `${props.NAME} ${props.LSAD}`).length
+				tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">${total.toLocaleString()} incidents</div></div>`;
+			} 
+			// else if (props.CD) {
+			// 	const title = `District #${props.CD}, ${findStateByCode(props.STATE)?.abbr}`
+			// 	tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">incidents</div></div>`;
+			// } 
+			else {
 				const total = allData.filter((d: any) => d.st === findStateByCode(props.STATE)?.abbr).length
 				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.NAME}</div><div class="text-sm">${total.toLocaleString()} incidents</div></div>`;
 			}
@@ -489,35 +492,35 @@ const setupDataSources = () => {
 		viewer.dataSources.add(source);
 		stEntities = source.entities.values;
 		for (var i = 0; i < stEntities.length; i++) {
-			stEntities[i].polygon.material = updateMaterial(stEntities[i], Color.WHITE.withAlpha(fillAlpha));
+			stEntities[i].polygon.material = updateMaterial(stEntities[i], Color.WHITE);
 			stEntities[i].polygon.outline = true;
 			stEntities[i].polygon.outlineColor = Color.WHITE.withAlpha(outlineAlpha);
 		}
 	})
 
-	const cdDataSource = GeoJsonDataSource.load("us_cd.json").then((source) => {
-		viewer.dataSources.add(source);
-		cdEntities = source.entities.values;
-		for (var i = 0; i < cdEntities.length; i++) {
-			cdEntities[i].show = false;
-			cdEntities[i].polygon.material = updateMaterial(cdEntities[i], Color.WHITE.withAlpha(fillAlpha));
-			cdEntities[i].polygon.outline = true;
-			cdEntities[i].polygon.outlineColor = Color.WHITE.withAlpha(outlineAlpha);
-		}
-	})
+	// const cdDataSource = GeoJsonDataSource.load("us_cd.json").then((source) => {
+	// 	viewer.dataSources.add(source);
+	// 	cdEntities = source.entities.values;
+	// 	for (var i = 0; i < cdEntities.length; i++) {
+	// 		cdEntities[i].show = false;
+	// 		cdEntities[i].polygon.material = updateMaterial(cdEntities[i], Color.WHITE.withAlpha(fillAlpha));
+	// 		cdEntities[i].polygon.outline = true;
+	// 		cdEntities[i].polygon.outlineColor = Color.WHITE.withAlpha(outlineAlpha);
+	// 	}
+	// })
 
 	const cnyDataSource = GeoJsonDataSource.load("us_cny.json").then((source) => {
 		viewer.dataSources.add(source);
 		cnyEntities = source.entities.values;
 		for (var i = 0; i < cnyEntities.length; i++) {
 			cnyEntities[i].show = false;
-			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], Color.WHITE.withAlpha(fillAlpha));
+			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], Color.WHITE);
 			cnyEntities[i].polygon.outline = true;
 			cnyEntities[i].polygon.outlineColor = Color.WHITE.withAlpha(outlineAlpha);
 		}
 	})
 
-	Promise.all([stDataSource, cdDataSource, cnyDataSource]).then(_d => {
+	Promise.all([stDataSource, cnyDataSource]).then(_d => {
 		mapLoaded = true;
 	});
 }
@@ -578,6 +581,7 @@ const addIncidentEntities = (data: Incident[]) => {
 		}
 
 		const pstatus = incident?.pstatus?.split(delimPipe).map((x: any) => x.split(delimColon)[1]);
+		let pstatusLength = 1;
 
 		if (pstatus?.length) {
 			const statusMap = new Map();
@@ -602,6 +606,7 @@ const addIncidentEntities = (data: Incident[]) => {
 			})
 			let pStatusDisplay: any = "";
 			const statusMapArr = Array.from(statusMap);
+			pstatusLength = statusMapArr.length;
 			statusMapArr.forEach((status: any, i: number) => {
 				pStatusDisplay = `${pStatusDisplay} <div>${status[1]} ${status[0]}${i !== statusMapArr.length - 1 ? `, ` : ``}</div>`;
 			});
@@ -629,6 +634,12 @@ const addIncidentEntities = (data: Incident[]) => {
 				pixelSize: 6,
 				color: color,
 				outlineWidth: 0
+			},
+			ellipse: {
+				semiMajorAxis: 100,
+				semiMinorAxis: 100,
+				material: new ColorMaterialProperty(color),
+				extrudedHeight: 100 * (pstatusLength * pstatusLength)
 			},
 			properties: props
 		});
