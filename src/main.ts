@@ -1,5 +1,5 @@
 import './style.css'
-import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, JulianDate, BoundingSphere, HeadingPitchRange, Cartesian3, PropertyBag, MapboxStyleImageryProvider } from 'cesium'
+import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty, ColorMaterialProperty, Entity, Cartesian2, defined, ScreenSpaceEventType, JulianDate, BoundingSphere, HeadingPitchRange, Cartesian3, PropertyBag, MapboxStyleImageryProvider, ConstantProperty } from 'cesium'
 import * as Highcharts from 'highcharts';
 import HC_more from "highcharts/highcharts-more";
 HC_more(Highcharts);
@@ -67,6 +67,9 @@ const ellipsis: any = document.getElementById("ellipsis");
 const splash: any = document.getElementById("splash");
 
 let allData: any[] = [];
+
+const stateTotals = new Map();
+const countyTotals = new Map();
 
 let jsonLoaded = false;
 let mapLoaded = false;
@@ -152,6 +155,23 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 	});
 
 	allData = data[0];
+
+	allData.forEach((d: any) => {
+		if (stateTotals.has(d.st)) {
+			stateTotals.set(d.st, stateTotals.get(d.st) + 1);
+		} else {
+			stateTotals.set(d.st, 1);
+		}
+
+		const county = `${!d.cny ? d.cty : d.cny}, ${d.st}`;
+
+		if (countyTotals.has(county)) {
+			countyTotals.set(county, countyTotals.get(county) + 1);
+		} else {
+			countyTotals.set(county, 1);
+		}
+	})
+
 	setupInitCamera();
 	setupDataSources();
 	setupBarChart();
@@ -287,7 +307,7 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.CITY}, ${props.STATE} - ${props.DATE}</div><div class="text-sm">(click for details)</div></div>`
 			} else if (props.COUNTY) {
 				const title = `${props.NAME} ${props.LSAD}, ${findStateByCode(props.STATE)?.abbr}`;
-				const total = allData.filter((d: any) => d.st === findStateByCode(props.STATE)?.abbr && d.cny === `${props.NAME} ${props.LSAD}`).length
+				const total = pickedObject.properties._TOTAL;
 				tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">${total.toLocaleString()} incidents</div></div>`;
 			} 
 			// else if (props.CD) {
@@ -295,7 +315,7 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 			// 	tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">incidents</div></div>`;
 			// } 
 			else {
-				const total = allData.filter((d: any) => d.st === findStateByCode(props.STATE)?.abbr).length
+				const total = pickedObject.properties._TOTAL;
 				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.NAME}</div><div class="text-sm">${total.toLocaleString()} incidents</div></div>`;
 			}
 		}
@@ -494,6 +514,7 @@ const setupDataSources = () => {
 		viewer.dataSources.add(source);
 		stEntities = source.entities.values;
 		for (var i = 0; i < stEntities.length; i++) {
+			stEntities[i].properties._TOTAL = stateTotals.get(findStateByCode(stEntities[i].properties.STATE.getValue())?.abbr);
 			stEntities[i].polygon.material = updateMaterial(stEntities[i], Color.WHITE);
 			stEntities[i].polygon.outline = true;
 			stEntities[i].polygon.outlineColor = Color.WHITE.withAlpha(outlineAlpha);
@@ -515,6 +536,8 @@ const setupDataSources = () => {
 		viewer.dataSources.add(source);
 		cnyEntities = source.entities.values;
 		for (var i = 0; i < cnyEntities.length; i++) {
+			const props = cnyEntities[i].properties;
+			props._TOTAL = countyTotals.get(`${props.NAME.getValue()} ${props.LSAD.getValue()}, ${findStateByCode(props.STATE.getValue())?.abbr}`);
 			cnyEntities[i].show = false;
 			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], Color.WHITE);
 			cnyEntities[i].polygon.outline = true;
