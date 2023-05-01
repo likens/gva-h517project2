@@ -65,6 +65,7 @@ const stateNav: any = document.getElementById("state");
 const countyDistrictNav: any = document.getElementById("countyDistrict");
 const ellipsis: any = document.getElementById("ellipsis");
 const splash: any = document.getElementById("splash");
+const legend: any = document.getElementById("legend");
 
 let stateColors: any = [];
 // let countyColors: any = [];
@@ -125,6 +126,8 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			htmlOverlay.classList.add("hidden");
 			// stateFork.classList.remove("grid");
 			// stateFork.classList.add("hidden");
+			legend.classList.remove("block");
+			legend.classList.add("hidden");
 		}
 	})
 	
@@ -161,6 +164,8 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			htmlOverlay.classList.add("hidden");
 			// stateFork.classList.add("grid");
 			// stateFork.classList.remove("hidden");
+			legend.classList.remove("block");
+			legend.classList.add("hidden");
 		}
 	});
 
@@ -412,6 +417,8 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			clearIncidentEntities();
 			updateDataViews(incidentData, entityName);
 			htmlOverlay.classList.add("hidden");
+			legend.classList.remove("block");
+			legend.classList.add("hidden");
 			flyToPolygon(pickedEntity.id.polygon, 3);
 
 		} else if (entityType === "CNY") {
@@ -454,6 +461,8 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			addIncidentEntities(incidentData);
 			updateDataViews(incidentData, `${countyFull}, ${findStateByCode(stateProp)?.abbr}`);
 			htmlOverlay.classList.add("hidden");
+			legend.classList.add("block");
+			legend.classList.remove("hidden");
 			flyToPolygon(pickedEntity.id.polygon, 2);
 
 		} 
@@ -546,7 +555,7 @@ const setupDataSources = () => {
 			stEntities[i].polygon.outline = true;
 			const maxColor = stateColors[stateColors.length - 1]
 			stEntities[i].polygon.outlineColor = Color.fromCssColorString(`rgb(${maxColor.r},${maxColor.g},${maxColor.b})`).withAlpha(outlineAlpha);
-			updateExtrudedHeight(stEntities[i], total * 25);
+			updateExtrudedHeight(stEntities[i], total * 10);
 		}
 	})
 
