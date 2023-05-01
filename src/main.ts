@@ -246,15 +246,6 @@ const generateColorScale = (num: number, color1: any, color2: any) => {
 	return colors;
 }
 
-// const formatCounty = (cny: string) => {
-// 	return cny.replace(" County", "")
-// 		.replace(" Parish", "")
-// 		.replace(" Borough", "")
-// 		.replace(" CA", "")
-// 		.replace(" Census Area", "")
-// 		.replace(" City", "");
-// }
-
 const setupInitCamera = () => {
 	camera.flyTo(HOME_CAMERA);
 }
@@ -683,9 +674,9 @@ const addIncidentEntities = (data: Incident[]) => {
 		} else if (pstatus?.length) {
 			pstatus.forEach((status: any) => {
 				if (status.includes(IncidentParticipantStatus.Arrested)) {
-					color = Color.fromCssColorString("#22c55e");
-				} else {
 					color = Color.fromCssColorString("#2563eb");
+				} else {
+					color = Color.fromCssColorString("#22c55e");
 				}
 			})
 		}
@@ -748,7 +739,7 @@ const setupBarChart = () => {
 				IncidentParticipantAgeGroup.Unknown
 			],
 			labels: {
-				enabled: false,
+				enabled: true,
 				style: {
 					color: "#94a3b8"
 				}
