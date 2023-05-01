@@ -66,6 +66,9 @@ const countyDistrictNav: any = document.getElementById("countyDistrict");
 const ellipsis: any = document.getElementById("ellipsis");
 const splash: any = document.getElementById("splash");
 
+let stateColors: any = [];
+let countyColors: any = [];
+
 let allData: any[] = [];
 
 const stateTotals = new Map();
@@ -103,8 +106,14 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			mapView = "USA";
 			mapActiveState = "";
 			// mapActiveCountyDistrict = "";
-			stEntities.forEach((entity: any) => entity.show = true);
-			cnyEntities.forEach((entity: any) => entity.show = false);
+			stEntities.forEach((entity: any) => {
+				entity.show = true;
+				updateExtrudedHeight(entity, entity.properties._TOTAL * 10);
+			});
+			cnyEntities.forEach((entity: any) => {
+				entity.show = false;
+				updateExtrudedHeight(entity, entity.properties._TOTAL * 10);
+			});
 			// cdEntities.forEach((entity: any) => entity.show = false);
 			clearIncidentEntities();
 			camera.flyTo(HOME_CAMERA);
@@ -127,7 +136,7 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 				const props = entity.properties;
 				if (props.STATE.getValue() === mapActiveState) {
 					entity.show = false;
-					flyToPolygon(entity.polygon);
+					flyToPolygon(entity.polygon, 3);
 				} else {
 					entity.show = true;
 				}
@@ -136,6 +145,7 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 				const props = entity.properties;
 				if (props.STATE.getValue() === mapActiveState) {
 					entity.show = true;
+					updateExtrudedHeight(entity, entity.properties._TOTAL * 50);
 				} else {
 					entity.show = false;
 				}
@@ -157,19 +167,19 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 	allData = data[0];
 
 	allData.forEach((d: any) => {
-		if (stateTotals.has(d.st)) {
-			stateTotals.set(d.st, stateTotals.get(d.st) + 1);
-		} else {
-			stateTotals.set(d.st, 1);
+		if (d.st) {
+			if (stateTotals.has(d.st)) {
+				stateTotals.set(d.st, stateTotals.get(d.st) + 1);
+			} else {
+				stateTotals.set(d.st, 1);
+			}
 		}
-
 		const county = `${!d.cny ? d.cty : d.cny}, ${d.st}`;
-
 		if (countyTotals.has(county)) {
 			countyTotals.set(county, countyTotals.get(county) + 1);
 		} else {
 			countyTotals.set(county, 1);
-		}
+		}	
 	})
 
 	setupInitCamera();
@@ -219,18 +229,22 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 
 })
 
-// const generateColorScale = (num: number, color1: any, color2: any) => {
-// 	const colors = [];
-// 	for (let i = 0; i < num; i++) {
-// 		const percent = i / (num - 1);
-// 		const r = Math.round(color1.r * (1 - percent) + color2.r * percent);
-// 		const g = Math.round(color1.g * (1 - percent) + color2.g * percent);
-// 		const b = Math.round(color1.b * (1 - percent) + color2.b * percent);
-// 		const hex = `#${r.toString(16)}${g.toString(16)}${b.toString(16)}`;
-// 		colors.push(hex);
-// 	}
-// 	return colors;
-// }
+const generateColorScale = (num: number, color1: any, color2: any) => {
+	const colors = [];
+	for (let i = 0; i < num; i++) {
+		const percent = i / (num - 1);
+		const r = Math.round(color1.r * (1 - percent) + color2.r * percent);
+		const g = Math.round(color1.g * (1 - percent) + color2.g * percent);
+		const b = Math.round(color1.b * (1 - percent) + color2.b * percent);
+		const rgb = {
+			r: r,
+			g: g,
+			b: b
+		}
+		colors.push(rgb);
+	}
+	return colors;
+}
 
 // const formatCounty = (cny: string) => {
 // 	return cny.replace(" County", "")
@@ -258,14 +272,26 @@ const getCurrentCamera = () => {
 	}
 }
 
-const updateMaterial = (entity: Entity, color: Color, alpha = true) => {
+const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .5) => {
+
+	const cesiumColor = Color.fromCssColorString(`rgb(${color.r},${color.g},${color.b})`);
+	const dr = Math.round((255 - color.r) * factor);
+	const dg = Math.round((255 - color.g) * factor);
+	const db = Math.round((255 - color.b) * factor);
+	const hoverColor = {
+		r: Math.min(color.r + dr, 255),
+		g: Math.min(color.g + dg, 255),
+		b: Math.min(color.b + db, 255)
+	}
+	const cesiumHoverColor = Color.fromCssColorString(`rgb(${hoverColor.r},${hoverColor.g},${hoverColor.b})`);
+
 	const colorProperty = new CallbackProperty((_t, r) => {
 		if (highlightedEntities.length) {
 			if (highlightedEntities.find((e: Entity) => e.id === entity.id)) {
-				return Color.clone(!alpha ? Color.WHITE : Color.WHITE.withAlpha(highlightAlpha), r);
+				return Color.clone(!alpha ? cesiumHoverColor : cesiumHoverColor.withAlpha(highlightAlpha), r);
 			}
 		}
-		return Color.clone(!alpha ? color : color.withAlpha(fillAlpha), r);
+		return Color.clone(!alpha ? cesiumColor : cesiumColor.withAlpha(fillAlpha), r);
 	}, false);
 	
 	return new ColorMaterialProperty(colorProperty);
@@ -307,7 +333,7 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.CITY}, ${props.STATE} - ${props.DATE}</div><div class="text-sm">(click for details)</div></div>`
 			} else if (props.COUNTY) {
 				const title = `${props.NAME} ${props.LSAD}, ${findStateByCode(props.STATE)?.abbr}`;
-				const total = pickedObject.properties._TOTAL;
+				const total = !pickedObject.properties._TOTAL ? 0 : pickedObject.properties._TOTAL;
 				tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">${total?.toLocaleString()} incidents</div></div>`;
 			} 
 			// else if (props.CD) {
@@ -315,7 +341,7 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 			// 	tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">incidents</div></div>`;
 			// } 
 			else {
-				const total = pickedObject.properties._TOTAL;
+				const total = !pickedObject.properties._TOTAL ? 0 : pickedObject.properties._TOTAL;
 				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.NAME}</div><div class="text-sm">${total?.toLocaleString()} incidents</div></div>`;
 			}
 		}
@@ -372,6 +398,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 						// hide all others
 						if (entityState === props.STATE.getValue()) {
 							entity.show = true;
+							updateExtrudedHeight(entity, entity.properties._TOTAL * 50);
 						} else {
 							entity.show = false;
 						}
@@ -388,12 +415,13 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 				} else {
 					entity.show = true;
 				}
+				updateExtrudedHeight(entity, 0);
 			})
 
 			clearIncidentEntities();
 			updateDataViews(incidentData, entityName);
 			htmlOverlay.classList.add("hidden");
-			flyToPolygon(pickedEntity.id.polygon);
+			flyToPolygon(pickedEntity.id.polygon, 3);
 
 		} else if (entityType === "CNY") {
 
@@ -413,6 +441,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 				} else {
 					entity.show = false;
 				}
+				updateExtrudedHeight(entity, 0);
 			});
 
 			// hide our picked county
@@ -434,7 +463,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			addIncidentEntities(incidentData);
 			updateDataViews(incidentData, `${countyFull}, ${findStateByCode(stateProp)?.abbr}`);
 			htmlOverlay.classList.add("hidden");
-			flyToPolygon(pickedEntity.id.polygon);
+			flyToPolygon(pickedEntity.id.polygon, 2);
 
 		} 
 		// else if (entityType === "CD") {
@@ -515,11 +544,18 @@ const setupDataSources = () => {
 	const stDataSource = GeoJsonDataSource.load("us_st.json").then((source) => {
 		viewer.dataSources.add(source);
 		stEntities = source.entities.values;
+		const max = Math.max(...[...stateTotals.entries()].sort((a, b) => b[1] - a[1]).map((v: any) => v[1]));
+		stateColors = generateColorScale(11, {r:203,g:213,b:225}, {r:30,g:41,b:59});
 		for (var i = 0; i < stEntities.length; i++) {
-			stEntities[i].properties._TOTAL = stateTotals.get(findStateByCode(stEntities[i].properties.STATE.getValue())?.abbr);
-			stEntities[i].polygon.material = updateMaterial(stEntities[i], Color.WHITE);
+			const total = stateTotals.get(findStateByCode(stEntities[i].properties.STATE.getValue())?.abbr);
+			let color = stateColors[0];
+			color = stateColors[Math.floor(((total/max)*100)/10)];
+			stEntities[i].properties._TOTAL = total;
+			stEntities[i].polygon.material = updateMaterial(stEntities[i], color, false);
 			stEntities[i].polygon.outline = true;
-			stEntities[i].polygon.outlineColor = Color.WHITE.withAlpha(outlineAlpha);
+			const maxColor = stateColors[stateColors.length - 1]
+			stEntities[i].polygon.outlineColor = Color.fromCssColorString(`rgb(${maxColor.r},${maxColor.g},${maxColor.b})`).withAlpha(outlineAlpha);
+			updateExtrudedHeight(stEntities[i], total * 25);
 		}
 	})
 
@@ -537,13 +573,24 @@ const setupDataSources = () => {
 	const cnyDataSource = GeoJsonDataSource.load("us_cny.json").then((source) => {
 		viewer.dataSources.add(source);
 		cnyEntities = source.entities.values;
+		// console.log(new Map([...countyTotals.entries()].sort((a, b) => b[1] - a[1])));
+		// const max = Math.max(...[...stateTotals.entries()].sort((a, b) => b[1] - a[1]).map((v: any) => v[1]));
+		countyColors = generateColorScale(6, {r:203,g:213,b:225}, {r:30,g:41,b:59});
 		for (var i = 0; i < cnyEntities.length; i++) {
 			const props = cnyEntities[i].properties;
-			props._TOTAL = countyTotals.get(`${props.NAME.getValue()} ${props.LSAD.getValue()}, ${findStateByCode(props.STATE.getValue())?.abbr}`);
+			let total = countyTotals.get(`${props.NAME.getValue()} ${props.LSAD.getValue()}, ${findStateByCode(props.STATE.getValue())?.abbr}`);
+			if (!total) {
+				total = 1;
+			}
+			// let color = countyColors[0];
+			// color = countyColors[Math.floor(((total/max)*100)/10)];
+			props._TOTAL = total;
 			cnyEntities[i].show = false;
-			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], Color.WHITE);
+			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], {r: 255, g: 255, b: 255}, false);
 			cnyEntities[i].polygon.outline = true;
-			cnyEntities[i].polygon.outlineColor = Color.WHITE.withAlpha(outlineAlpha);
+			// const maxColor = countyColors[countyColors.length - 1]
+			cnyEntities[i].polygon.outlineColor = Color.fromCssColorString(`rgb(0,0,0)`).withAlpha(outlineAlpha);
+			updateExtrudedHeight(cnyEntities[i], total * 50);
 		}
 	})
 
@@ -646,15 +693,16 @@ const addIncidentEntities = (data: Incident[]) => {
 			show: true,
 			position: Cartesian3.fromDegrees(Number(incident.lng), Number(incident.lat), 0),
 			point: {
-				pixelSize: 6,
+				pixelSize: 5,
 				color: color,
+				outlineColor: Color.TRANSPARENT,
 				outlineWidth: 0
 			},
 			ellipse: {
-				semiMajorAxis: 50,
-				semiMinorAxis: 50,
+				semiMajorAxis: 100,
+				semiMinorAxis: 100,
 				material: new ColorMaterialProperty(color),
-				extrudedHeight: 100 * (pstatusTotal * 2)
+				extrudedHeight: 100 * (pstatusTotal * pstatusTotal)
 			},
 			properties: props
 		});
@@ -662,11 +710,11 @@ const addIncidentEntities = (data: Incident[]) => {
 	});
 }
 
-const flyToPolygon = (polygon: any) => {
+const flyToPolygon = (polygon: any, multiplier = 1) => {
 	const boundingSphere = BoundingSphere.fromPoints(polygon.hierarchy.getValue().positions);
 	camera.flyToBoundingSphere(boundingSphere, {
 		duration: 1,
-		offset: new HeadingPitchRange(0, CesiumMath.toRadians(-75), boundingSphere.radius * 3),
+		offset: new HeadingPitchRange(0, CesiumMath.toRadians(-60), boundingSphere.radius * multiplier),
 	});
 }
 
@@ -1250,4 +1298,8 @@ const updateDataViews = (data: Incident[], title: string) => {
 	loadBubbleChartData(data);
 	loadPieChartData(data);
 	updateIncidentTotal(data.length, title);
+}
+
+const updateExtrudedHeight = (entity: any, value: number) => {
+	entity.polygon.extrudedHeight = value;
 }
