@@ -67,7 +67,7 @@ const ellipsis: any = document.getElementById("ellipsis");
 const splash: any = document.getElementById("splash");
 
 let stateColors: any = [];
-let countyColors: any = [];
+// let countyColors: any = [];
 
 let allData: any[] = [];
 
@@ -575,7 +575,7 @@ const setupDataSources = () => {
 		cnyEntities = source.entities.values;
 		// console.log(new Map([...countyTotals.entries()].sort((a, b) => b[1] - a[1])));
 		// const max = Math.max(...[...stateTotals.entries()].sort((a, b) => b[1] - a[1]).map((v: any) => v[1]));
-		countyColors = generateColorScale(6, {r:203,g:213,b:225}, {r:30,g:41,b:59});
+		// countyColors = generateColorScale(6, {r:203,g:213,b:225}, {r:30,g:41,b:59});
 		for (var i = 0; i < cnyEntities.length; i++) {
 			const props = cnyEntities[i].properties;
 			let total = countyTotals.get(`${props.NAME.getValue()} ${props.LSAD.getValue()}, ${findStateByCode(props.STATE.getValue())?.abbr}`);
