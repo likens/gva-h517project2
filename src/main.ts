@@ -308,7 +308,7 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 			} else if (props.COUNTY) {
 				const title = `${props.NAME} ${props.LSAD}, ${findStateByCode(props.STATE)?.abbr}`;
 				const total = pickedObject.properties._TOTAL;
-				tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">${total.toLocaleString()} incidents</div></div>`;
+				tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">${total?.toLocaleString()} incidents</div></div>`;
 			} 
 			// else if (props.CD) {
 			// 	const title = `District #${props.CD}, ${findStateByCode(props.STATE)?.abbr}`
@@ -316,7 +316,7 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 			// } 
 			else {
 				const total = pickedObject.properties._TOTAL;
-				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.NAME}</div><div class="text-sm">${total.toLocaleString()} incidents</div></div>`;
+				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.NAME}</div><div class="text-sm">${total?.toLocaleString()} incidents</div></div>`;
 			}
 		}
 
@@ -354,7 +354,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			countyDistrictNav.classList.add("hidden");
 			countyDistrictNav.innerHTML = "";
 			stateNav.classList.remove("hidden");
-			stateNav.innerHTML = entityName;
+			stateNav.innerHTML = `\\ ${entityName}`;
 			mapActiveState = entityState;
 
 			const incidentData = allData.filter((incident: Incident) => incident.st === findStateByCode(props.STATE.getValue())?.abbr);
@@ -400,7 +400,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			mapView = props.TYPE.getValue();
 			const countyFull = `${entityName}${entityLSAD ? ` ${entityLSAD}` : ``}`;
 			countyDistrictNav.classList.remove("hidden");
-			countyDistrictNav.innerHTML = countyFull;
+			countyDistrictNav.innerHTML = `\\ ${countyFull}`;
 			// mapActiveCountyDistrict = countyFull;
 			const stateProp = props.STATE.getValue();
 
@@ -499,7 +499,9 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			overlayContent.innerHTML = incidentContent;
 			viewer.scene.preRender.addEventListener(() => {
 				const position = viewer.scene.cartesianToCanvasCoordinates(pos, new Cartesian2());
-				htmlOverlay.style.transform = `translate(${position.x + 5}px, ${position.y}px)`;
+				if (position) {
+					htmlOverlay.style.transform = `translate(${position.x + 5}px, ${position.y}px)`;
+				}
 			})
 
 		}
@@ -606,33 +608,21 @@ const addIncidentEntities = (data: Incident[]) => {
 		}
 
 		const pstatus = incident?.pstatus?.split(delimPipe).map((x: any) => x.split(delimColon)[1]);
-		let pstatusLength = 1;
+		let pstatusTotal = 1;
 
 		if (pstatus?.length) {
 			const statusMap = new Map();
 			pstatus.forEach((status: any) => {
-				// unharmed, arrested
-				if (status.includes(", ")) {
-					const newStatus = status.split(", ");
-					newStatus.forEach((ns: any) => {
-						if (statusMap.has(ns)) {
-							statusMap.set(ns, statusMap.get(ns) + 1);
-						} else {
-							statusMap.set(ns, 1);
-						}
-					})
+				if (statusMap.has(status)) {
+					statusMap.set(status, statusMap.get(status) + 1);
 				} else {
-					if (statusMap.has(status)) {
-						statusMap.set(status, statusMap.get(status) + 1);
-					} else {
-						statusMap.set(status, 1);
-					}
+					statusMap.set(status, 1);
 				}
 			})
 			let pStatusDisplay: any = "";
 			const statusMapArr = Array.from(statusMap);
-			pstatusLength = statusMapArr.length;
 			statusMapArr.forEach((status: any, i: number) => {
+				pstatusTotal = pstatusTotal + status[1];
 				pStatusDisplay = `${pStatusDisplay} <div>${status[1]} ${status[0]}${i !== statusMapArr.length - 1 ? `, ` : ``}</div>`;
 			});
 			props.addProperty("PSTATUS", `<div>Participant(s):</div><div>${pStatusDisplay}</div>`);
@@ -661,10 +651,10 @@ const addIncidentEntities = (data: Incident[]) => {
 				outlineWidth: 0
 			},
 			ellipse: {
-				semiMajorAxis: 100,
-				semiMinorAxis: 100,
+				semiMajorAxis: 50,
+				semiMinorAxis: 50,
 				material: new ColorMaterialProperty(color),
-				extrudedHeight: 100 * (pstatusLength * pstatusLength)
+				extrudedHeight: 100 * (pstatusTotal * 2)
 			},
 			properties: props
 		});
@@ -681,7 +671,7 @@ const flyToPolygon = (polygon: any) => {
 }
 
 const updateIncidentTotal = (total: number, name: string) => {
-	incidentTotal.innerHTML = `${total.toLocaleString()} total incidents <br/> within ${name}`;
+	incidentTotal.innerHTML = `${total.toLocaleString()} total incidents within ${name}`;
 }
 
 const setupBarChart = () => {
@@ -708,16 +698,37 @@ const setupBarChart = () => {
 				IncidentParticipantAgeGroup.Teen,
 				IncidentParticipantAgeGroup.Child,
 				IncidentParticipantAgeGroup.Unknown
-			]
+			],
+			labels: {
+				enabled: false,
+				style: {
+					color: "#94a3b8"
+				}
+			},
+			lineColor: "rgba(100,116,139,.5)",
+			gridLineColor: "rgba(100,116,139,.5)"
 		},
 		yAxis: {
 			min: 0,
 			title: {
 				text: ''
-			}
+			},
+			labels: {
+				style: {
+					color: "#94a3b8"
+				}
+			},
+			lineColor: "rgba(100,116,139,.5)",
+			gridLineColor: "rgba(100,116,139,.5)"
 		},
 		legend: {
-			reversed: true
+			reversed: true,
+			itemStyle: {
+				color: "#fff"
+			},
+			itemHoverStyle: {
+				color: "#94a3b8"
+			}
 		},
 		plotOptions: {
 			series: {
@@ -731,7 +742,10 @@ const setupBarChart = () => {
 			{ name: IncidentParticipantGender.Unknown, color: '#9DB4C0' },
 			{ name: IncidentParticipantGender.Female, color: '#f472b6' },
 			{ name: IncidentParticipantGender.Male, color: '#60a5fa' }
-		]
+		],
+		credits: {
+			enabled: false
+		}
 	});
 }
 
@@ -837,32 +851,32 @@ const setupTimeChart = () => {
 			}
 		},
 		xAxis: {
-			type: 'datetime'
+			type: 'datetime',
+			labels: {
+				enabled: false,
+				style: {
+					color: "#94a3b8"
+				}
+			},
+			tickColor: "transparent",
+			lineColor: "rgba(100,116,139,.5)",
+			gridLineColor: "rgba(100,116,139,.5)"
 		},
 		yAxis: {
-			title: {
-				text: ''
-			}
+			title: "",
+			labels: {
+				style: {
+					color: "#94a3b8"
+				}
+			},
+			lineColor: "rgba(100,116,139,.5)",
+			gridLineColor: "rgba(100,116,139,.5)"
 		},
 		legend: {
 			enabled: false
 		},
 		plotOptions: {
 			area: {
-				lineColor: Highcharts.color("#a1a1aa").setOpacity(.5).get('rgba'),
-				fillColor: {
-					linearGradient: {
-						x1: 0,
-						y1: 0,
-						x2: 0,
-						y2: 1
-					},
-					stops: [
-						// Zinc 400 to 950
-						[0, "#09090b"],
-						[1, Highcharts.color("#a1a1aa").setOpacity(0).get('rgba')]
-					]
-				},
 				marker: {
 					radius: 2
 				},
@@ -879,7 +893,10 @@ const setupTimeChart = () => {
 		series: [{
 			type: 'area',
 			name: 'Incidents'
-		}]
+		}],
+		credits: {
+			enabled: false
+		}
 	});
 }
 
@@ -923,6 +940,14 @@ const setupBubbleChart = () => {
 			useHTML: true,
 			pointFormat: '<strong>{point.name}</strong> involved in <strong>{point.value}</strong> incidents'
 		},
+		legend: {
+			itemStyle: {
+				color: "#fff"
+			},
+			itemHoverStyle: {
+				color: "#94a3b8"
+			}
+		},
 		plotOptions: {
 			packedbubble: {
 				minSize: '60%',
@@ -939,9 +964,7 @@ const setupBubbleChart = () => {
 					format: '<div class="text-center"><div class="text-lg">{point.value}</div><div>{point.name}</div></div>',
 					useHTML: true,
 					style: {
-						color: 'black',
-						textOutline: 'none',
-						fontWeight: 'normal'
+						color: '#fff'
 					}
 				}
 			}
@@ -952,7 +975,10 @@ const setupBubbleChart = () => {
 			{ name: IncidentGunType.Shotgun , color: colors[3] },
 			{ name: IncidentGunType.Other , color: colors[4] },
 			{ name: IncidentGunType.Unknown , color: colors[0] }
-		]
+		],
+		credits: {
+			enabled: false
+		}
 	});
 }
 
@@ -1063,64 +1089,67 @@ const setupPieChart = () => {
 	// @ts-ignore
 	chartPie = Highcharts.chart('chartPie', {
 		chart: {
-			type: 'pie',
+			type: 'bar',
 			backgroundColor: "transparent",
 			style: {
 				fontFamily: 'League Mono'
 			}
 		},
+		legend: {
+			enabled: false
+		},
 		title: {
-			text: 'By Incident Attribute',
+			text: 'By Incident Characteristic',
 			align: 'center',
 			style: {
 				color: "#fff"
 			}
 		},
-		subtitle: {
-			text: 'Click the slices to view attribute breakdown',
-			align: 'center',
-			style: {
-				color: "#fff"
-			}
-		},
-
-		accessibility: {
-			announceNewData: {
-				enabled: true
+		xAxis: {
+			labels: {
+				enabled: false,
+				style: {
+					color: "#94a3b8"
+				}
 			},
-			point: {
-				valueSuffix: '%'
-			}
+			tickColor: "transparent",
+			lineColor: "rgba(100,116,139,.5)",
+			gridLineColor: "rgba(100,116,139,.5)"
 		},
-
+		yAxis: {
+			title: "",
+			labels: {
+				style: {
+					color: "#94a3b8"
+				}
+			},
+			lineColor: "rgba(100,116,139,.5)",
+			gridLineColor: "rgba(100,116,139,.5)"
+		},
 		plotOptions: {
 			series: {
 				dataLabels: {
 					enabled: true,
-					format: '{point.name}: {point.y:.1f}%',
+					format: '{point.name}',
 					style: {
-						fontSize: 12 + 'px'
+						fontSize: 12 + 'px',
+						color: "#FFF"
 					}
 				}
 			}
 		},
-
 		tooltip: {
-			headerFormat: '<span style="font-size:11px">{series.name}</span><br>',
-			pointFormat: '<span style="color:{point.color}">{point.name}</span>: <b>{point.y:.2f}%</b> of total<br/>'
+			headerFormat: '<span style="color:{point.color};font-size:13px;">{point.name}</span><br />',
+			pointFormat: '<strong>{point.y}</strong> incidents'
 		},
-
 		series: [
 			{
 				name: 'Incident Attributes',
 				colorByPoint: true,
 			}
 		],
-		
-		drilldown: {
-			series: [
-
-			]
+		credits: {
+			enabled: false
 		}
 	});
 }
