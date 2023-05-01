@@ -515,13 +515,13 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			htmlOverlay.classList.add("grid");
 			const incidentTitle = `${props.CITY}, ${props.STATE} - ${props.DATE}`;
 			const incidentContent = `
+				<div class="pb-3 pt-1 text-lg font-bold uppercase">
+					<a href="https://gunviolencearchive.org/incident/${props.GVAID}" target="_blank" class="hover:underline">GVA Source ↗</a>
+				</div>
 				<div class="grid gap-2 grid-cols-[max-content_minmax(250px,_400px)]">
 					${props.ATTR ? `<div class="text-sm contents">${props.ATTR}</div>` : ``}
 					${props.PSTATUS ? `<div class="text-sm contents">${props.PSTATUS}</div>` : ``}
 					${props.GTYPE ? `<div class="text-sm contents">${props.GTYPE}</div>` : ``}
-				</div>
-				<div class="text-right text-lg font-bold uppercase">
-					<a href="https://gunviolencearchive.org/incident/${props.GVAID}" target="_blank" class="hover:underline">GVA Source ↗</a>
 				</div>
 			`;
 			overlayTitle.innerHTML = incidentTitle;
@@ -702,7 +702,7 @@ const addIncidentEntities = (data: Incident[]) => {
 				semiMajorAxis: 100,
 				semiMinorAxis: 100,
 				material: new ColorMaterialProperty(color),
-				extrudedHeight: 100 * (pstatusTotal * pstatusTotal)
+				extrudedHeight: 100 * (pstatusTotal * (pstatusTotal / 2))
 			},
 			properties: props
 		});
