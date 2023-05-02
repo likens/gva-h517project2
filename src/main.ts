@@ -750,7 +750,7 @@ const setupBarChart = () => {
 			labels: {
 				enabled: true,
 				style: {
-					color: "#94a3b8"
+					color: "#fafafa"
 				}
 			},
 			lineColor: "rgba(100,116,139,.5)",
@@ -763,7 +763,7 @@ const setupBarChart = () => {
 			},
 			labels: {
 				style: {
-					color: "#94a3b8"
+					color: "#fafafa"
 				}
 			},
 			lineColor: "rgba(100,116,139,.5)",
@@ -782,7 +782,12 @@ const setupBarChart = () => {
 			series: {
 				stacking: 'normal',
 				dataLabels: {
-					enabled: true
+					enabled: true,
+					style: {
+						fontSize: 10 + 'px',
+						color: "#fafafa",
+						fontWeight: 400
+					}
 				}
 			}
 		},
@@ -965,7 +970,7 @@ const loadTimeChartData = (data: Incident[]) => {
 }
 
 const setupBubbleChart = () => {
-	const colors = ['#9DB4C0', '#0369A1', '#022C22', '#3B0764', '#713F12', '#0E2127', '#881337', '#38bdf8'];
+	const colors = ['#9DB4C0', '#be123c', '#059669', '#a855f7', '#ca8a04', ];
 	// @ts-ignore
 	chartBubble = Highcharts.chart('chartBubble', {
 		chart: {
@@ -1157,7 +1162,7 @@ const setupPieChart = () => {
 			labels: {
 				enabled: false,
 				style: {
-					color: "#94a3b8"
+					color: "#fafafa"
 				}
 			},
 			tickColor: "transparent",
@@ -1168,7 +1173,7 @@ const setupPieChart = () => {
 			title: "",
 			labels: {
 				style: {
-					color: "#94a3b8"
+					color: "#fafafa"
 				}
 			},
 			lineColor: "rgba(100,116,139,.5)",
@@ -1180,8 +1185,9 @@ const setupPieChart = () => {
 					enabled: true,
 					format: '{point.name}',
 					style: {
-						fontSize: 12 + 'px',
-						color: "#FFF"
+						fontSize: 14 + 'px',
+						color: "#fafafa",
+						fontWeight: 100
 					}
 				}
 			}
@@ -1204,7 +1210,7 @@ const setupPieChart = () => {
 
 const loadPieChartData = (data: Incident[]) => {
 
-	const attrColors = ['#9DB4C0', '#0369A1', '#022C22', '#3B0764', '#713F12', '#0E2127', '#881337', '#dc2626', '#14b8a6','#ca8a04','#171717' ];
+	const attrColors = ['#9DB4C0', '#0ea5e9', '#047857', '#9333ea', '#854d0e', '#0E2127', '#e11d48', '#fca5a5', '#14b8a6','#facc15','#525252' ];
 	const attrDesc = [IncidentAttribute.AccidentalShooting, IncidentAttribute.ChildInvolvedIncident, IncidentAttribute.DefensiveUse, IncidentAttribute.HomeInvasion, IncidentAttribute.SchoolIncident, IncidentAttribute.DomesticViolence, IncidentAttribute.DrugInvolvement, IncidentAttribute.GangInvolvement, IncidentAttribute.Suicide, IncidentAttribute.MassShooting]
 
 	const pattern = " - ";
