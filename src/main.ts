@@ -289,19 +289,6 @@ const generateColorScale = (num: number, color1: any, color2: any) => {
 const setupInitCamera = () => {
 	camera.flyTo(HOME_CAMERA);
 }
-	
-const getCurrentCamera = () => {
-	return {
-		orientation: {
-			heading: camera.heading,
-			pitch: camera.pitch,
-			roll: camera.roll
-		}, 
-		destination: {
-			...camera.position
-		}
-	}
-}
 
 const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .25) => {
 	const dynamic = false;
