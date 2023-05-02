@@ -327,9 +327,9 @@ const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .25) 
 	return new ColorMaterialProperty(colorProperty);
 }
 
-camera.moveEnd.addEventListener(() => {
-	console.log("CAMERA:", getCurrentCamera());
-})
+// camera.moveEnd.addEventListener(() => {
+// 	console.log("CAMERA:", getCurrentCamera());
+// })
 
 handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 	// const tooltip: any = viewer.entities.getById('tooltip');
