@@ -3,7 +3,7 @@ import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty,
 import * as Highcharts from 'highcharts';
 import HC_more from "highcharts/highcharts-more";
 HC_more(Highcharts);
-import { Incident, findStateByCode, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, IncidentGunCaliber, IncidentGunType, IncidentAttribute, IncidentParticipantStatus } from "./utils";
+import { Incident, findStateByCode, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, IncidentGunCaliber, IncidentGunType, IncidentAttribute, IncidentParticipantStatus, US_STATES_DICT } from "./utils";
 
 const fillAlpha = .1;
 const outlineAlpha = .25;
@@ -179,7 +179,10 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			} else {
 				stateTotals.set(d.st, 1);
 			}
-			const county = `${!d.cny ? `${d.cty} City` : d.cny}, ${d.st}`;
+			let county = `${!d.cny ? `${d.cty} City` : d.cny}, ${d.st}`;
+			if (d.st === US_STATES_DICT.DC.abbr) {
+				county = "District of Columbia, DC";
+			}
 			if (countyTotals.has(county)) {
 				countyTotals.set(county, countyTotals.get(county) + 1);
 			} else {
@@ -336,7 +339,10 @@ handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 			if (props.GVAID) {
 				tooltipText = `<div class="grid gap-1"><div class="text-xl">${props.CITY}, ${props.STATE} - ${props.DATE}</div><div class="text-sm">(click for details)</div></div>`
 			} else if (props.COUNTY) {
-				const title = `${props.NAME} ${props.LSAD}, ${findStateByCode(props.STATE)?.abbr}`;
+				let title = `${props.NAME} ${props.LSAD}, ${findStateByCode(props.STATE)?.abbr}`;
+				if (props.NAME.NAMEName === "District of Columbia") {
+					title = props.NAME;
+				}
 				const total = !pickedObject.properties._TOTAL ? 0 : pickedObject.properties._TOTAL;
 				tooltipText = `<div class="grid gap-1"><div class="text-xl">${title}</div><div class="text-sm">${total?.toLocaleString()} incidents</div></div>`;
 			} 
@@ -432,7 +438,10 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 		} else if (entityType === "CNY") {
 
 			mapView = props.TYPE.getValue();
-			const countyFull = `${entityName}${entityLSAD ? ` ${entityLSAD}` : ``}`;
+			let countyFull = `${entityName}${entityLSAD ? ` ${entityLSAD}` : ``}`;
+			if (entityName === "District of Columbia") {
+				countyFull = entityName;
+			}
 			countyDistrictNav.classList.remove("hidden");
 			countyDistrictNav.innerHTML = `\\ ${countyFull}`;
 			// mapActiveCountyDistrict = countyFull;
@@ -455,7 +464,9 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 
 			const incidentData = allData.filter((incident: Incident) => {
 				if (incident.st === findStateByCode(stateProp)?.abbr) {
-					if (incident.cny === countyFull) {
+					if (incident.st === US_STATES_DICT.DC.abbr) {
+						return incident;
+					} else if (incident.cny === countyFull) {
 						return incident;
 					} else if (!incident.cny && incident.cty === entityName) {
 						return incident;
@@ -584,9 +595,13 @@ const setupDataSources = () => {
 		countyColors = generateColorScale(6, {r:203,g:213,b:225}, {r:30,g:41,b:59});
 		for (var i = 0; i < cnyEntities.length; i++) {
 			const props = cnyEntities[i].properties;
-			let total = countyTotals.get(`${props.NAME.getValue()} ${props.LSAD.getValue()}, ${findStateByCode(props.STATE.getValue())?.abbr}`);
+			const state = findStateByCode(props.STATE.getValue())?.abbr;
+			let total = countyTotals.get(`${props.NAME.getValue()} ${props.LSAD.getValue()}, ${state}`);
+			if (state === US_STATES_DICT.DC.abbr) {
+				total = countyTotals.get("District of Columbia, DC");
+			}
 			let color = countyColors[0];
-			const max = countyMaxes.get(findStateByCode(props.STATE.getValue())?.abbr);
+			const max = countyMaxes.get(state);
 			if (!total) {
 				total = 0;
 			} else {
