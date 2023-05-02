@@ -16,11 +16,12 @@
 				</div>
 				<div class="flex gap-6 text-3xl">
 					<a href="#" class="hover:underline" onClick="document.getElementById('about').classList.remove('opacity-0', 'invisible')">About</a>
+					<a href="#" class="hover:underline" onClick="document.getElementById('gallery').classList.remove('opacity-0', 'invisible')">Gallery</a>
 					<a href="#" class="hover:underline" onClick="document.getElementById('video').classList.remove('opacity-0', 'invisible')">Video</a>
 				</div>
 			</div>
 
-			<div id="about" class="fixed top-0 left-0 right-0 bottom-0 z-50 text-white bg-slate-950/90 flex items-center justify-center opacity-0 invisible transition-fade duration-1000">
+			<div id="about" class="fixed top-0 left-0 right-0 bottom-0 z-50 text-white bg-slate-950/90 flex items-center justify-center opacity-0 invisible transition-fade duration-500">
 				<div class="grid w-3/4 h-5/6 z-50 bg-slate-900 overflow-auto border-slate-500 border-solid border">
 					<div class="flex py-6 px-6 gap-6 justify-between sticky top-0 bg-slate-900 self-start border-slate-500 border-solid border-b">
 						<div class="uppercase text-5xl">About</div>
@@ -63,7 +64,7 @@
 						<p>The <a href="https://www.gunviolencearchive.org/" class="uppercase text-lg hover:underline" target="_blank">Gun Violence Archive (GVA)</a> was the first to come to mind. Established in 2013, they have been used as a reputable source of incident data by numerous outlets through the years. Through their website, we explored their massive database, and even found some maps and graphs that we thought could serve as inspiration for some of our data visualizations. Eventually, we discovered a way to export the data through a <a href="https://www.gunviolencearchive.org/reports" class="uppercase text-lg hover:underline" target="_blank">reporting feature</a>, and it was conveniently already organized into different categories such as years or incident attributes.</p>
 						<p>However, after quickly going through the exported data, we realized that it did not have as much information about each incident compared to what's found on the incident's webpage (<a href="https://www.gunviolencearchive.org/incident/2573436" class="uppercase text-lg hover:underline" target="_blank">example incident</a>). For some reason, the csv exports were limited to the following columns: Incident ID, Incident Date, State, City Or County, Address, # Killed, # Injured, and Operations. While this may be enough to build a couple of visualizations out of, we had already envisioned utilizing the rest of the more interesting data, such as shooting attributes, found in the incident pages for more insightful visuals. Also, Cesium, the mapping tool we're using, required specific longitude and latitude coordinates to plot incident locations. More importantly, answers to our initial questions were going to need more extensive data, hence we needed to find a way to extract the information from the page.</p>
 						<p>Initially, we attempted web scraping and even wrote a python script that would crawl through every single incident page based on a date range and extract specific fields from it. We quickly found out that the GVA had anti-scraping tools in place that proved to be too troublesome for us to circumvent. It was at this point that we looked elsewhere for additional sources.</p>
-						<p>Finally, while going through the <a href="https://github.com/awesomedata/awesome-public-datasets" class="uppercase text-lg hover:underline" target="_blank">Awesome Public Datasets</a> found in the class' resources page, we stumbled upon a <a href="https://github.com/awesomedata/awesome-public-datasets" class="uppercase text-lg hover:underline" target="_blank">GitHub repository</a> containing fleshed out GVA data. It contained most of the additional attributes we were looking for, and funny enough, was compiled together using web scraping. The data set was from the years 2013-2018. While not the newest of data, we thought it was still recent enough to draw relevant conclusions from. It had about 220,000 records, 20 relevant columns, and the unformatted csv file was over 147 MB.</p>
+						<p>Finally, while going through the <a href="https://github.com/awesomedata/awesome-public-datasets" class="uppercase text-lg hover:underline" target="_blank">Awesome Public Datasets</a> found in the class' resources page, we stumbled upon a <a href="https://github.com/jamesqo/gun-violence-data" class="uppercase text-lg hover:underline" target="_blank">GitHub repository</a> containing fleshed out GVA data. It contained most of the additional attributes we were looking for, and funny enough, was compiled together using web scraping. The data set was from the years 2013-2018. The final range of years that we used was limited to 2014-2017. We ended up removing 2013 and 2018 because they were incomplete. 2013 had gaps in the records while 2018 was only up to March. Moreover, while not the newest of data, we thought it was still recent enough to draw relevant conclusions from. It had about 220,000 records, 20 relevant columns, and the unformatted csv file was over 147 MB.</p>
 						<p>Data sets weren't the only thing we were searching for at this time. To provide more context regarding incident types, we also wanted to find out how different organizations define mass shootings. Below are some of reputable sources we found alongside their respective definitions of a mass shooting:</p>
 						<ul class="list-disc pl-6 grid gap-2 pb-6">
 							<li>
@@ -172,18 +173,44 @@
 						<p>Working on this project, to say the least, has been a truly eye-opening experience for us. Despite starting our research with some prior dispositions about the topic, the data set was so vast and incredibly powerful that it still provided us with insights that we wouldn't have been able to obtain otherwise. Moreover, what we also think made a major difference was the use of data visualizations. From doing something as basic as plotting points on map to dissecting the relationships between attributes, seeing data in a visual format helped us notice patterns and trends that we probably would have missed. The analysis process became much easier, more efficient, and most importantly, allowed for the discovery of the hidden insights we were after. Overall, while this project has been a technical challenge, it has taught us the importance of using data visualization techniques to bring to light undiscovered information within complex data sets, and we are excited to apply what we learned in future projects and endeavors.</p>
 						<div class="uppercase text-3xl">References</div>
 						<div class="uppercase text-xl">Data</div>
-						<p>TODO</p>
+						<ul class="list-disc pl-6 grid gap-2">
+							<li>Awesome Public Datasets - <a href="https://github.com/awesomedata/awesome-public-datasets" class="uppercase text-lg hover:underline" target="_blank">GitHub ↗</a></li>
+							<li>Gun Violence Data - <a href="https://github.com/jamesqo/gun-violence-data" class="uppercase text-lg hover:underline" target="_blank">GitHub ↗</a></li>
+						</ul>
 						<div class="uppercase text-xl">Libraries</div>
-						<p>TODO</p>
-						<div class="uppercase text-xl">Inspiration</div>
-						<p>TODO</p>
+						<ul class="list-disc pl-6 grid gap-2">
+							<li>Cesium - <a href="https://github.com/CesiumGS/cesium" class="uppercase text-lg hover:underline" target="_blank">GitHub ↗</a></li>
+							<li>Highcharts - <a href="https://github.com/highcharts/highcharts" class="uppercase text-lg hover:underline" target="_blank">GitHub ↗</a></li>
+							<li>Tailwind - <a href="https://github.com/tailwindlabs/tailwindcss" class="uppercase text-lg hover:underline" target="_blank">GitHub ↗</a></li>
+						</ul>
 						<div class="uppercase text-xl">Purpose</div>
-						<p>TODO</p>
+						<ul class="list-disc pl-6 grid gap-2">
+							<li>H517 - Visualization Design, Analysis, and Evaluation - Project 2</li>
+							<li>IUPUI Human-Computer Interaction Master's Program, Spring 2023</li>
+							<li>Caleb Likens - <a href="https://likens.dev" class="uppercase text-lg hover:underline" target="_blank">Website ↗</a></li>
+							<li>Wilson Piguing - <a href="https://wpiguing.dev" class="uppercase text-lg hover:underline" target="_blank">Website ↗</a></li>
+							<li>Source Code - <a href="https://github.com/likens/h517project2" class="uppercase text-lg hover:underline" target="_blank">GitHub ↗</a></li>
+							<li>Video - <a href="https://www.youtube.com/watch?v=53ihoZxyy68" class="uppercase text-lg hover:underline" target="_blank">YouTube ↗</a></li>
+						</ul>
+						<p></p>
 					</div>
 				</div>
 			</div>
 
-			<div id="video" class="fixed top-0 left-0 right-0 bottom-0 z-50 text-white bg-slate-950/90 flex items-center justify-center opacity-0 invisible transition-fade duration-1000">
+			<div id="gallery" class="fixed top-0 left-0 right-0 bottom-0 z-50 text-white bg-slate-950/90 flex items-center justify-center opacity-0 invisible transition-fade duration-500">
+				<div class="grid w-3/4 z-50 bg-slate-900 overflow-auto border-slate-500 border-solid border">
+					<div class="flex py-6 px-6 gap-6 justify-between sticky top-0 bg-slate-900 self-start border-slate-500 border-solid border-b">
+						<div class="uppercase text-5xl">Gallery</div>
+						<button title="Close" type="button" class="p-0 m-0 bg-none border-none text-center text-3xl" onClick="document.getElementById('gallery').classList.add('opacity-0', 'invisible')">X</button>
+					</div>
+					<div>
+						
+						
+					</div>
+				</div>
+			</div>
+
+			<div id="video" class="fixed top-0 left-0 right-0 bottom-0 z-50 text-white bg-slate-950/90 flex items-center justify-center opacity-0 invisible transition-fade duration-500">
 				<div class="grid w-3/4 z-50 bg-slate-900 overflow-auto border-slate-500 border-solid border">
 					<div class="flex py-6 px-6 gap-6 justify-between sticky top-0 bg-slate-900 self-start border-slate-500 border-solid border-b">
 						<div class="uppercase text-5xl">Video</div>
@@ -197,7 +224,7 @@
 
 			<div class="relative grid grid-cols-[400px_1fr] grid-rows-[1fr_200px] bg-slate-700 text-white w-full overflow-auto">
 
-				<div id="splash" class="z-50 flex items-center justify-center absolute top-0 left-0 right-0 bottom-0 bg-slate-900 border-slate-500 border-solid border-t text-3xl transition-fade duration-1000">Loading<div id="ellipsis" class="w-[52px] ml-2"></div></div>
+				<div id="splash" class="z-50 flex items-center justify-center text-center absolute top-0 left-0 right-0 bottom-0 bg-slate-900 border-slate-500 border-solid border-t text-3xl transition-fade duration-1000">Loading<div id="ellipsis" class="w-[52px] ml-2"></div></div>
 
 				<div id="sidebar" class="row-span-2 h-full overflow-auto pr-4 grid gap-4">
 					<div id="chartPie" class="w-full h-[375px]"></div>
