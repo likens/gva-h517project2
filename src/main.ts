@@ -3,7 +3,7 @@ import { Math as CesiumMath, Color, GeoJsonDataSource, Viewer, CallbackProperty,
 import * as Highcharts from 'highcharts';
 import HC_more from "highcharts/highcharts-more";
 HC_more(Highcharts);
-import { Incident, findStateByCode, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, IncidentGunCaliber, IncidentGunType, IncidentAttribute, IncidentParticipantStatus, US_STATES_DICT } from "./utils";
+import { Incident, findStateByCode, HOME_CAMERA, IncidentParticipantAgeGroup, IncidentParticipantGender, STR_UNKNOWN, IncidentGunCaliber, IncidentGunType, IncidentAttribute, IncidentParticipantStatus, US_STATES_DICT, findStateByName } from "./utils";
 
 const fillAlpha = .1;
 const outlineAlpha = .25;
@@ -65,7 +65,8 @@ const stateNav: any = document.getElementById("state");
 const countyDistrictNav: any = document.getElementById("countyDistrict");
 const ellipsis: any = document.getElementById("ellipsis");
 const splash: any = document.getElementById("splash");
-const legend: any = document.getElementById("legend");
+const colors: any = document.getElementById("colors");
+const incidents: any = document.getElementById("incidents");
 
 let stateColors: any = [];
 let countyColors: any = [];
@@ -75,6 +76,7 @@ let allData: any[] = [];
 const stateTotals = new Map();
 const countyTotals = new Map();
 const countyMaxes = new Map();
+const countyMins = new Map();
 
 let jsonLoaded = false;
 let mapLoaded = false;
@@ -127,8 +129,15 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			htmlOverlay.classList.add("hidden");
 			// stateFork.classList.remove("grid");
 			// stateFork.classList.add("hidden");
-			legend.classList.remove("block");
-			legend.classList.add("hidden");
+			incidents.classList.remove("grid");
+			incidents.classList.add("hidden");
+			colors.classList.add("block");
+			colors.classList.remove("hidden");
+			
+			const max = Math.max(...[...stateTotals.entries()].sort((a, b) => b[1] - a[1]).map((v: any) => v[1]));
+			const min = Math.min(...[...stateTotals.entries()].sort((a, b) => b[1] - a[1]).map((v: any) => v[1]));
+			calculateColorRange(stateColors, max, min);
+
 		}
 	})
 	
@@ -165,8 +174,14 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			htmlOverlay.classList.add("hidden");
 			// stateFork.classList.add("grid");
 			// stateFork.classList.remove("hidden");
-			legend.classList.remove("block");
-			legend.classList.add("hidden");
+			incidents.classList.remove("grid");
+			incidents.classList.add("hidden");
+			colors.classList.add("block");
+			colors.classList.remove("hidden");
+							
+			const max = countyMaxes.get(findStateByName(stateNav.innerHTML)!.abbr);
+			const min = countyMins.get(findStateByName(stateNav.innerHTML)!.abbr);
+			calculateColorRange(countyColors, max, min);
 		}
 	});
 
@@ -191,11 +206,19 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 		}
 	})
 
-	const allCounties = [...countyTotals.entries()].sort((a, b) => b[1] - a[1]);
-	allCounties.forEach((cny: any) => {
+	const maxCounties = [...countyTotals.entries()].sort((a, b) => b[1] - a[1]);
+	const minCounties = [...countyTotals.entries()].sort((a, b) => a[1] - b[1]);
+	
+	maxCounties.forEach((cny: any) => {
 		const state = cny[0].split(", ")[1];
 		if (!countyMaxes.has(state)) {
 			countyMaxes.set(state, cny[1]);
+		}
+	});
+	minCounties.forEach((cny: any) => {
+		const state = cny[0].split(", ")[1];
+		if (!countyMins.has(state)) {
+			countyMins.set(state, cny[1]);
 		}
 	});
 
@@ -409,6 +432,11 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 						if (entityState === props.STATE.getValue()) {
 							entity.show = true;
 							updateExtrudedHeight(entity, entity.properties._TOTAL * 100);
+							
+							const max = countyMaxes.get(findStateByCode(entityState)!.abbr);
+							const min = countyMins.get(findStateByCode(entityState)!.abbr);
+							calculateColorRange(countyColors, max, min);
+
 						} else {
 							entity.show = false;
 						}
@@ -431,8 +459,10 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			clearIncidentEntities();
 			updateDataViews(incidentData, entityName);
 			htmlOverlay.classList.add("hidden");
-			legend.classList.remove("block");
-			legend.classList.add("hidden");
+			incidents.classList.remove("grid");
+			incidents.classList.add("hidden");
+			colors.classList.add("block");
+			colors.classList.remove("hidden");
 			flyToPolygon(pickedEntity.id.polygon, 3);
 
 		} else if (entityType === "CNY") {
@@ -480,8 +510,10 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			addIncidentEntities(incidentData);
 			updateDataViews(incidentData, `${countyFull}, ${findStateByCode(stateProp)?.abbr}`);
 			htmlOverlay.classList.add("hidden");
-			legend.classList.add("block");
-			legend.classList.remove("hidden");
+			incidents.classList.add("grid");
+			incidents.classList.remove("hidden");
+			colors.classList.remove("block");
+			colors.classList.add("hidden");
 			flyToPolygon(pickedEntity.id.polygon, 2);
 
 		} 
@@ -564,7 +596,9 @@ const setupDataSources = () => {
 		viewer.dataSources.add(source);
 		stEntities = source.entities.values;
 		const max = Math.max(...[...stateTotals.entries()].sort((a, b) => b[1] - a[1]).map((v: any) => v[1]));
+		const min = Math.min(...[...stateTotals.entries()].sort((a, b) => b[1] - a[1]).map((v: any) => v[1]));
 		stateColors = generateColorScale(11, {r:203,g:213,b:225}, {r:30,g:41,b:59});
+		calculateColorRange(stateColors, max, min);
 		for (var i = 0; i < stEntities.length; i++) {
 			const total = stateTotals.get(findStateByCode(stEntities[i].properties.STATE.getValue())?.abbr);
 			let color = stateColors[0];
@@ -1336,4 +1370,25 @@ const updateDataViews = (data: Incident[], title: string) => {
 
 const updateExtrudedHeight = (entity: any, value: number) => {
 	entity.polygon.extrudedHeight = value > 300000 ? 300000 : value;
+}
+
+const calculateColorRange = (range: any, max: number, min: number) => {
+	let gradient = "";
+	let blocks = "";
+	range.forEach((color: any, i: number) => {
+		gradient = `${gradient}rgb(${color.r},${color.g},${color.b})${i < range.length - 1 ? `, ` : ``}`;
+		blocks = `${blocks}<div class="w-full h-full" style="background:rgb(${color.r},${color.g},${color.b})"></div>`
+	})
+	colors.innerHTML = `
+		<div class="grid gap-1">
+			<div class="text-center">Incident Count Range</div>
+			<div class="grid grid-cols-[min-content_200px_min-content] gap-3">
+				<div>${min.toLocaleString()}</div>
+				<div class="h-full w-full flex border border-solid border-slate-500 grid-cols-${range.length}" style="background:linear-gradient(to right, ${gradient})">
+					${blocks}
+				</div>
+				<div>${max.toLocaleString()}</div>
+			</div>
+		</div>
+	`;
 }
