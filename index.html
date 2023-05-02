@@ -15,16 +15,21 @@
 					<div id="incidentTotal" class="w-full font-bold uppercase text-2xl"></div>
 				</div>
 				<div class="flex gap-6 text-3xl">
-					<a href="#" class="hover:underline" onClick="document.getElementById('about').classList.remove('opacity-0', 'invisible')">About</a>
-					<a href="#" class="hover:underline" onClick="document.getElementById('gallery').classList.remove('opacity-0', 'invisible')">Gallery</a>
-					<a href="#" class="hover:underline" onClick="document.getElementById('video').classList.remove('opacity-0', 'invisible')">Video</a>
+					<a href="/docs/Project-Documentation.pdf" class="hover:underline" onClick="linkClick(event, 'about')">About</a>
+					<a href="/docs/Visualizations-Design-Process.pdf" class="hover:underline" onClick="linkClick(event, 'gallery')">Gallery</a>
+					<a href="https://www.youtube.com/watch?v=Z5xZ0yjugmI" class="hover:underline" onClick="linkClick(event, 'video')">Video</a>
 				</div>
 			</div>
 
 			<div id="about" class="fixed top-0 left-0 right-0 bottom-0 z-50 text-white bg-slate-950/90 flex items-center justify-center opacity-0 invisible transition-fade duration-500">
 				<div class="grid w-3/4 h-5/6 z-50 bg-slate-900 overflow-auto border-slate-500 border-solid border">
 					<div class="flex py-6 px-6 gap-6 justify-between sticky top-0 bg-slate-900 self-start border-slate-500 border-solid border-b">
-						<div class="uppercase text-5xl">About</div>
+						<div>
+							<div class="uppercase text-5xl">About</div>
+							<div>
+								<a href="/docs/Project-Documentation.pdf" class="uppercase hover:underline" target="_blank">(PDF)</a>
+							</div>
+						</div>
 						<button title="Close" type="button" class="p-0 m-0 bg-none border-none text-center text-3xl" onClick="document.getElementById('about').classList.add('opacity-0', 'invisible')">X</button>
 					</div>
 					<div class="about grid p-6 self-start gap-6">
@@ -203,7 +208,12 @@
 			<div id="gallery" class="fixed top-0 left-0 right-0 bottom-0 z-50 text-white bg-slate-950/90 flex items-center justify-center opacity-0 invisible transition-fade duration-500">
 				<div class="grid w-3/4 h-5/6 z-50 bg-slate-900 overflow-auto border-slate-500 border-solid border">
 					<div class="flex py-6 px-6 gap-6 justify-between sticky top-0 bg-slate-900 self-start border-slate-500 border-solid border-b">
-						<div class="uppercase text-5xl">Gallery</div>
+						<div>
+							<div class="uppercase text-5xl">Gallery</div>
+							<div>
+								<a href="/docs/Visualizations-Design-Process.pdf" class="uppercase hover:underline" target="_blank">(PDF)</a>
+							</div>
+						</div>
 						<button title="Close" type="button" class="p-0 m-0 bg-none border-none text-center text-3xl" onClick="document.getElementById('gallery').classList.add('opacity-0', 'invisible')">X</button>
 					</div>
 					<div id="list" class="captions grid gap-2 overflow-auto"></div>
@@ -213,7 +223,12 @@
 			<div id="video" class="fixed top-0 left-0 right-0 bottom-0 z-50 text-white bg-slate-950/90 flex items-center justify-center opacity-0 invisible transition-fade duration-500">
 				<div class="grid w-3/4 z-50 bg-slate-900 overflow-auto border-slate-500 border-solid border">
 					<div class="flex py-6 px-6 gap-6 justify-between sticky top-0 bg-slate-900 self-start border-slate-500 border-solid border-b">
-						<div class="uppercase text-5xl">Video</div>
+						<div>
+							<div class="uppercase text-5xl">Video</div>
+							<div>
+								<a href="https://www.youtube.com/watch?v=Z5xZ0yjugmI" class="uppercase hover:underline" target="_blank">(YouTube)</a>
+							</div>
+						</div>
 						<button title="Close" type="button" class="p-0 m-0 bg-none border-none text-center text-3xl" onClick="document.getElementById('video').classList.add('opacity-0', 'invisible')">X</button>
 					</div>
 					<div>
@@ -270,6 +285,13 @@
 			</div>
 
 		</div>
+
+		<script>
+			function linkClick(e, id) {
+				e.preventDefault();
+				document.getElementById(id).classList.remove('opacity-0', 'invisible')
+			}
+		</script>
 
 		<script type="module" src="/src/main.ts"></script>
 	</body>
