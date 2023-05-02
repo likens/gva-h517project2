@@ -149,7 +149,7 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 				const props = entity.properties;
 				if (props.STATE.getValue() === mapActiveState) {
 					entity.show = false;
-					flyToPolygon(entity.polygon, 3);
+					flyToPolygon(entity.polygon, 3.5);
 				} else {
 					entity.show = true;
 				}
@@ -290,6 +290,19 @@ const setupInitCamera = () => {
 	camera.flyTo(HOME_CAMERA);
 }
 
+const getCurrentCamera = () => {
+	return {
+		orientation: {
+			heading: camera.heading,
+			pitch: camera.pitch,
+			roll: camera.roll
+		}, 
+		destination: {
+			...camera.position
+		}
+	}
+}
+
 const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .25) => {
 	const dynamic = false;
 	const cesiumColor = Color.fromCssColorString(`rgb(${color.r},${color.g},${color.b})`);
@@ -314,9 +327,9 @@ const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .25) 
 	return new ColorMaterialProperty(colorProperty);
 }
 
-// camera.moveEnd.addEventListener(() => {
-// 	console.log("CAMERA:", getCurrentCamera());
-// })
+camera.moveEnd.addEventListener(() => {
+	console.log("CAMERA:", getCurrentCamera());
+})
 
 handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 	// const tooltip: any = viewer.entities.getById('tooltip');
@@ -450,7 +463,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			incidents.classList.add("hidden");
 			colors.classList.add("block");
 			colors.classList.remove("hidden");
-			flyToPolygon(pickedEntity.id.polygon, 3);
+			flyToPolygon(pickedEntity.id.polygon, 3.5);
 
 		} else if (entityType === "CNY") {
 
@@ -501,7 +514,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 			incidents.classList.remove("hidden");
 			colors.classList.remove("block");
 			colors.classList.add("hidden");
-			flyToPolygon(pickedEntity.id.polygon, 2);
+			flyToPolygon(pickedEntity.id.polygon, 2.5);
 
 		} 
 		// else if (entityType === "CD") {
