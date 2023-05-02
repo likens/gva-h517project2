@@ -7,6 +7,11 @@
 	src: url("/fonts/LeagueMono-NarrowMedium.woff2") format("woff2");
 }
 
+@font-face {
+	font-family: "League Mono Light";
+	src: url("/fonts/LeagueMono-NarrowLight.woff2") format("woff2");
+}
+
 :root {
 	font-family: 'League Mono', sans-serif;
 	line-height: 1.5;
@@ -54,9 +59,15 @@ body {
 	background: rgb(30 41 59);
 }
 
-@media (prefers-color-scheme: light) {
-	:root {
-		color: #213547;
-		background-color: #ffffff;
-	}
+.about p,
+.about li {
+	font-family: 'League Mono Light', sans-serif;
+}
+
+.about a {
+	font-family: 'League Mono', sans-serif;
+}
+
+::selection {
+	background: #475569;
 }
