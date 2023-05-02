@@ -1,0 +1,203 @@
+[
+    {
+        "path": "/gallery/maps1.png",
+        "caption": "First iteration of state level view of the Cesium map. States were separated using random colors."
+    },
+    {
+        "path": "/gallery/maps2.png",
+        "caption": "First iteration county level view. Counties were separated using random colors. "
+    },
+    {
+        "path": "/gallery/maps3.png",
+        "caption": "First iteration congressional district level view. CD’s were separated using random colors. "
+    },
+    {
+        "path": "/gallery/maps4.png",
+        "caption": "Close up view of the Congressional Disctrcts. Utilizing the Cesium’s 3D capabilities to show incident counts per CD. "
+    },
+    {
+        "path": "/gallery/maps5.png",
+        "caption": "Close up view of Cook County."
+    },
+    {
+        "path": "/gallery/maps6.png",
+        "caption": "All individual incidents plotted on the map using yellow markers. "
+    },
+    {
+        "path": "/gallery/maps7.png",
+        "caption": "Whoops. Yellow markers were changed to be based on the number of incidents clustered together."
+    },
+    {
+        "path": "/gallery/maps8.png",
+        "caption": "Adjusted multiplier for each county. The circles were still a bit too big. We can thank Cook County for this one.  "
+    },
+    {
+        "path": "/gallery/maps9.png",
+        "caption": "Adjusted multiplier even more. This was much better, but could still be improved."
+    },
+    {
+        "path": "/gallery/maps10.png",
+        "caption": "Probably the best version so far. Cook County is still very noticeable. "
+    },
+    {
+        "path": "/gallery/maps11.png",
+        "caption": "Adjust colors but used same multipliers. "
+    },
+    {
+        "path": "/gallery/maps12.png",
+        "caption": "Tried a stacked bar approach that protrudes in the 3D space instead of a circle that just gets a wider radius to represent incidents clustered close together. "
+    },
+    {
+        "path": "/gallery/maps13.png",
+        "caption": "Used a gradient color scale to show incident heat map. Shown is the state level."
+    },
+    {
+        "path": "/gallery/maps14.png",
+        "caption": "Tried a different color this time.  "
+    },
+    {
+        "path": "/gallery/maps15.png",
+        "caption": "3D protruding heat map at the county level. Also used the same color gradient scale. "
+    },
+    {
+        "path": "/gallery/maps16.png",
+        "caption": "Different angle of the same view to showcase 3D nature of Cesium."
+    },
+    {
+        "path": "/gallery/maps17.png",
+        "caption": "View for congressional districts."
+    },
+    {
+        "path": "/gallery/maps18.png",
+        "caption": "Individual incident locations. We noticed that the airport in Atlanta had an unusual amount of incidents tied to one single location which was an airport."
+    },
+    {
+        "path": "/gallery/20.png",
+        "caption": "Close up view of the airport by Atlanta."
+    },
+    {
+        "path": "/gallery/maps19.png",
+        "caption": "Close up view of Chicago. There were incidents at almost every block. "
+    },
+    {
+        "path": "/gallery/maps20.png",
+        "caption": "This version leaned towards a more neutral color scheme for the map. This is the county view."
+    },
+    {
+        "path": "/gallery/maps21.png",
+        "caption": "Another county view."
+    },
+    {
+        "path": "/gallery/skin2.png",
+        "caption": "A default Mapbox skin applied to the map. We removed the 3D layer to test the map layer in the meantime. We still needed to add our own customizations to it. "
+    },
+    {
+        "path": "/gallery/skin1.png",
+        "caption": "On the left was our first pass at a Mapbox map layer skin. It was the closest to the default navigation skin. On the right are some of our changes. We wanted less of the signs and icons shown. We also wanted to tone down the amount of streets shown. "
+    },
+    {
+        "path": "/gallery/skin5.png",
+        "caption": "More changes to the custom map layer skin. Started using a darker background to better match the theme. "
+    },
+    {
+        "path": "/gallery/skin6.png",
+        "caption": "Darkened and reduced the frequency of roads showing up. The incidents were going to be highlights of the map, so other information was not as important."
+    },
+    {
+        "path": "/gallery/skin3.png",
+        "caption": "More map layer skin updates."
+    },
+    {
+        "path": "/gallery/chart1.png",
+        "caption": "First pass at a time series graph showing all incidents over 3 years. We were still working out the colors. "
+    },
+    {
+        "path": "/gallery/chart2.png",
+        "caption": "One of the first versions of the gender and age breakdown chart."
+    },
+    {
+        "path": "/gallery/chart3.png",
+        "caption": "First version of a bubble chart to display incident numbers for all 50 states. The scaling was not properly representing the numbers.  "
+    },
+    {
+        "path": "/gallery/chart5.png",
+        "caption": "We tried using a split bubble chart to group gun types used into victim statuses. This was not working properly.  "
+    },
+    {
+        "path": "/gallery/chart6.png",
+        "caption": "We attempted creating a split bubble breakdown for the top incidents for states. This again wasn’t scaling properly, and Highcharts had an issue with gravity interaction for physics-based bubbles. "
+    },
+    {
+        "path": "/gallery/chart7.png",
+        "caption": "Messed with the scaling even more."
+    },
+    {
+        "path": "/gallery/chart8.png",
+        "caption": "The same gravity property was giving us issues when using bubble charts."
+    },
+    {
+        "path":  "/gallery/chart9.png",
+        "caption": "One of our first attempts at breaking down the gun types by caliber using bubble charts."
+    },
+    {
+        "path": "/gallery/chart10.png",
+        "caption": "Gun types broken down into the larger gun type categories. Scaling was again an issue."
+    },
+    {
+        "path": "/gallery/chart11.png",
+        "caption": "Another example of the scaling issue persistent throughout our use of the bubble charts.  "
+    },
+    {
+        "path": "/gallery/chart12.png",
+        "caption": "In an attempt to fix the scaling, we then ran into the issue of alloted screen space for the bubbles. While more accurate, this was clearly not going to work. "
+    },
+    {
+        "path": "/gallery/chart13.png",
+        "caption": "We used colored bubble charts to group calibers into their respective gun type categories.  "
+    },
+    {
+        "path": "/gallery/chart14.png",
+        "caption": "We also the ability to turn off certain categories from the chart by clicking on the legends at the bottom. This was a Highcharts feature. "
+    },
+    {
+        "path": "/gallery/chart15.png",
+        "caption": "One of our first passes at attribute breakdown chart. We used a pie chart initially. "
+    },
+    {
+        "path": "/gallery/chart16.png",
+        "caption": "When a specific attribute was clicked, it opened another breakdown of the statuses for all individuals in that category. This breakdown feature was also native to Highcharts. "
+    },
+    {
+        "path": "/gallery/chart17.png",
+        "caption": "One of our first attempts at showing all the charts on the page. The colors were still being adjusted at this point. "
+    },
+    {
+        "path": "/gallery/chart19.png",
+        "caption": "Adjusted the colors further to better complement the rest of the page. We weren’t sure at this point if we were keeping the white background for the charts either. "
+    },
+    {
+        "path": "/gallery/chart21.png",
+        "caption": "Some more gradient adjustments were made to the time series graph. "
+    },
+    {
+        "path": "/gallery/chart22.png",
+        "caption": "Another view of the page so far. "
+    },
+    {
+        "path": "/gallery/chart23.png",
+        "caption": "Adjusted background to a darker color closer to the map layer skin color.  "
+    },
+    {
+        "path": "/gallery/chart24.png",
+        "caption": "Adjusted all of the chart colors to be brighter and pop out better. Also changed the labels to white.  "
+    },
+    {
+        "path": "/gallery/cd2.png",
+        "caption": "At one point in the process, we also explored giving the user the option between a county or congressional district view. "
+    },
+    {
+        "path": "/gallery/cd1.png",
+        "caption": "However, as you can see here, Cesium has updated congressional district borders that have long since changed and are not representative of the points from out data. "
+    }
+    
+]
