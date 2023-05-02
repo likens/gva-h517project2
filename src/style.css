@@ -59,6 +59,7 @@ body {
 	background: rgb(30 41 59);
 }
 
+.captions,
 .about p,
 .about li {
 	font-family: 'League Mono Light', sans-serif;

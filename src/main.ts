@@ -67,6 +67,7 @@ const ellipsis: any = document.getElementById("ellipsis");
 const splash: any = document.getElementById("splash");
 const colors: any = document.getElementById("colors");
 const incidents: any = document.getElementById("incidents");
+const list: any = document.getElementById("list");
 
 let stateColors: any = [];
 let countyColors: any = [];
@@ -80,6 +81,7 @@ const countyMins = new Map();
 
 let jsonLoaded = false;
 let mapLoaded = false;
+let galleryLoaded = false;
 
 let text = ellipsis.textContent;
 let dotCount = 0;
@@ -96,7 +98,7 @@ const loading = setInterval(function() {
 }, 500);
 
 const dataCheck = setInterval(() => {
-	if (jsonLoaded && mapLoaded) {
+	if (jsonLoaded && mapLoaded && galleryLoaded) {
 		clearInterval(loading);
 		clearInterval(dataCheck);
 		splash.classList.add("opacity-0", "invisible");
@@ -230,6 +232,9 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 	setupPieChart();
 	updateDataViews(data[0], 'USA');
 	jsonLoaded = true;
+
+	setupGallery();
+	galleryLoaded = true;
 
 	// stateCounties.addEventListener('click', () => {
 	// 	// go through all counties
@@ -658,6 +663,16 @@ const setupDataSources = () => {
 
 	Promise.all([stDataSource, cnyDataSource]).then(_d => {
 		mapLoaded = true;
+	});
+}
+
+const setupGallery = () => {
+	Promise.all([fetch('gallery/captions.json').then(r => r.json())]).then(images => {
+		let layout = ``;
+		images[0].forEach((img: any) => {
+			layout = `${layout}<div class="grid gap-2 p-6 text-center"><div><img class="w-1/2 block mx-auto border-slate-500 border-solid border" src="${img.path}" alt="" /></div><div class="w-1/2 mx-auto">${img.caption}</div></div>`
+		})
+		list.innerHTML = layout;
 	});
 }
 
