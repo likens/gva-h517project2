@@ -68,12 +68,13 @@ const splash: any = document.getElementById("splash");
 const legend: any = document.getElementById("legend");
 
 let stateColors: any = [];
-// let countyColors: any = [];
+let countyColors: any = [];
 
 let allData: any[] = [];
 
 const stateTotals = new Map();
 const countyTotals = new Map();
+const countyMaxes = new Map();
 
 let jsonLoaded = false;
 let mapLoaded = false;
@@ -113,7 +114,7 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			});
 			cnyEntities.forEach((entity: any) => {
 				entity.show = false;
-				updateExtrudedHeight(entity, entity.properties._TOTAL * 10);
+				updateExtrudedHeight(entity, entity.properties._TOTAL * 100);
 			});
 			// cdEntities.forEach((entity: any) => entity.show = false);
 			clearIncidentEntities();
@@ -148,7 +149,7 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 				const props = entity.properties;
 				if (props.STATE.getValue() === mapActiveState) {
 					entity.show = true;
-					updateExtrudedHeight(entity, entity.properties._TOTAL * 50);
+					updateExtrudedHeight(entity, entity.properties._TOTAL * 100);
 				} else {
 					entity.show = false;
 				}
@@ -178,14 +179,22 @@ Promise.all([fetch('gva_data.json').then(r => r.json())]).then(data => {
 			} else {
 				stateTotals.set(d.st, 1);
 			}
+			const county = `${!d.cny ? `${d.cty} City` : d.cny}, ${d.st}`;
+			if (countyTotals.has(county)) {
+				countyTotals.set(county, countyTotals.get(county) + 1);
+			} else {
+				countyTotals.set(county, 1);
+			}
 		}
-		const county = `${!d.cny ? d.cty : d.cny}, ${d.st}`;
-		if (countyTotals.has(county)) {
-			countyTotals.set(county, countyTotals.get(county) + 1);
-		} else {
-			countyTotals.set(county, 1);
-		}	
 	})
+
+	const allCounties = [...countyTotals.entries()].sort((a, b) => b[1] - a[1]);
+	allCounties.forEach((cny: any) => {
+		const state = cny[0].split(", ")[1];
+		if (!countyMaxes.has(state)) {
+			countyMaxes.set(state, cny[1]);
+		}
+	});
 
 	setupInitCamera();
 	setupDataSources();
@@ -268,8 +277,8 @@ const getCurrentCamera = () => {
 	}
 }
 
-const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .5) => {
-
+const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .25) => {
+	const dynamic = false;
 	const cesiumColor = Color.fromCssColorString(`rgb(${color.r},${color.g},${color.b})`);
 	const dr = Math.round((255 - color.r) * factor);
 	const dg = Math.round((255 - color.g) * factor);
@@ -279,8 +288,7 @@ const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .5) =
 		g: Math.min(color.g + dg, 255),
 		b: Math.min(color.b + db, 255)
 	}
-	const cesiumHoverColor = Color.fromCssColorString(`rgb(${hoverColor.r},${hoverColor.g},${hoverColor.b})`);
-
+	const cesiumHoverColor = dynamic ? Color.fromCssColorString(`rgb(${hoverColor.r},${hoverColor.g},${hoverColor.b})`) : Color.fromCssColorString(`rgb(82,82,91)`);
 	const colorProperty = new CallbackProperty((_t, r) => {
 		if (highlightedEntities.length) {
 			if (highlightedEntities.find((e: Entity) => e.id === entity.id)) {
@@ -394,7 +402,7 @@ handler.setInputAction((movement: { position: Cartesian2; }) => {
 						// hide all others
 						if (entityState === props.STATE.getValue()) {
 							entity.show = true;
-							updateExtrudedHeight(entity, entity.properties._TOTAL * 50);
+							updateExtrudedHeight(entity, entity.properties._TOTAL * 100);
 						} else {
 							entity.show = false;
 						}
@@ -573,24 +581,29 @@ const setupDataSources = () => {
 	const cnyDataSource = GeoJsonDataSource.load("us_cny.json").then((source) => {
 		viewer.dataSources.add(source);
 		cnyEntities = source.entities.values;
-		// console.log(new Map([...countyTotals.entries()].sort((a, b) => b[1] - a[1])));
-		// const max = Math.max(...[...stateTotals.entries()].sort((a, b) => b[1] - a[1]).map((v: any) => v[1]));
-		// countyColors = generateColorScale(6, {r:203,g:213,b:225}, {r:30,g:41,b:59});
+		countyColors = generateColorScale(6, {r:203,g:213,b:225}, {r:30,g:41,b:59});
 		for (var i = 0; i < cnyEntities.length; i++) {
 			const props = cnyEntities[i].properties;
 			let total = countyTotals.get(`${props.NAME.getValue()} ${props.LSAD.getValue()}, ${findStateByCode(props.STATE.getValue())?.abbr}`);
+			let color = countyColors[0];
+			const max = countyMaxes.get(findStateByCode(props.STATE.getValue())?.abbr);
 			if (!total) {
-				total = 1;
+				total = 0;
+			} else {
+				let index = Math.floor(((total/max)*100)/10);
+				if (index > countyColors.length - 1) {
+					index = countyColors.length - 1;
+				}
+				color = countyColors[index];
 			}
-			// let color = countyColors[0];
-			// color = countyColors[Math.floor(((total/max)*100)/10)];
+			props._COLOR = color;
 			props._TOTAL = total;
 			cnyEntities[i].show = false;
-			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], {r: 255, g: 255, b: 255}, false);
+			cnyEntities[i].polygon.material = updateMaterial(cnyEntities[i], color, false);
 			cnyEntities[i].polygon.outline = true;
-			// const maxColor = countyColors[countyColors.length - 1]
-			cnyEntities[i].polygon.outlineColor = Color.fromCssColorString(`rgb(0,0,0)`).withAlpha(outlineAlpha);
-			updateExtrudedHeight(cnyEntities[i], total * 50);
+			const maxColor = countyColors[countyColors.length - 1]
+			cnyEntities[i].polygon.outlineColor = Color.fromCssColorString(`rgb(${maxColor.r},${maxColor.g},${maxColor.b})`).withAlpha(outlineAlpha);
+			updateExtrudedHeight(cnyEntities[i], total * 100);
 		}
 	})
 
@@ -1301,5 +1314,5 @@ const updateDataViews = (data: Incident[], title: string) => {
 }
 
 const updateExtrudedHeight = (entity: any, value: number) => {
-	entity.polygon.extrudedHeight = value;
+	entity.polygon.extrudedHeight = value > 300000 ? 300000 : value;
 }
