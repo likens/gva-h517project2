@@ -295,18 +295,18 @@ const setupInitCamera = () => {
 	camera.flyTo(HOME_CAMERA);
 }
 
-const getCurrentCamera = () => {
-	return {
-		orientation: {
-			heading: camera.heading,
-			pitch: camera.pitch,
-			roll: camera.roll
-		}, 
-		destination: {
-			...camera.position
-		}
-	}
-}
+// const getCurrentCamera = () => {
+// 	return {
+// 		orientation: {
+// 			heading: camera.heading,
+// 			pitch: camera.pitch,
+// 			roll: camera.roll
+// 		}, 
+// 		destination: {
+// 			...camera.position
+// 		}
+// 	}
+// }
 
 const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .25) => {
 	const dynamic = false;
@@ -332,9 +332,9 @@ const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .25) 
 	return new ColorMaterialProperty(colorProperty);
 }
 
-camera.moveEnd.addEventListener(() => {
-	// console.log("CAMERA:", getCurrentCamera());
-})
+// camera.moveEnd.addEventListener(() => {
+// 	// console.log("CAMERA:", getCurrentCamera());
+// })
 
 handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
 	// const tooltip: any = viewer.entities.getById('tooltip');
