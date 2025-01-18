@@ -41,10 +41,6 @@ body {
 	bottom: 0;
 }
 
-#cesium .cesium-widget-credits {
-	display: none !important;
-}
-
 ::-webkit-scrollbar {
 	width: 10px;
 }

@@ -333,7 +333,7 @@ const updateMaterial = (entity: Entity, color: any, alpha = true, factor = .25) 
 }
 
 camera.moveEnd.addEventListener(() => {
-	console.log("CAMERA:", getCurrentCamera());
+	// console.log("CAMERA:", getCurrentCamera());
 })
 
 handler.setInputAction((movement: { endPosition: Cartesian2; }) => {
@@ -872,10 +872,7 @@ const setupBarChart = () => {
 			{ name: IncidentParticipantGender.Unknown, color: '#9DB4C0' },
 			{ name: IncidentParticipantGender.Female, color: '#f472b6' },
 			{ name: IncidentParticipantGender.Male, color: '#60a5fa' }
-		],
-		credits: {
-			enabled: false
-		}
+		]
 	});
 }
 
@@ -1023,10 +1020,7 @@ const setupTimeChart = () => {
 		series: [{
 			type: 'area',
 			name: 'Incidents'
-		}],
-		credits: {
-			enabled: false
-		}
+		}]
 	});
 }
 
@@ -1105,10 +1099,7 @@ const setupBubbleChart = () => {
 			{ name: IncidentGunType.Shotgun , color: colors[3] },
 			{ name: IncidentGunType.Other , color: colors[4] },
 			{ name: IncidentGunType.Unknown , color: colors[0] }
-		],
-		credits: {
-			enabled: false
-		}
+		]
 	});
 }
 
@@ -1278,10 +1269,7 @@ const setupPieChart = () => {
 				name: 'Incident Attributes',
 				colorByPoint: true,
 			}
-		],
-		credits: {
-			enabled: false
-		}
+		]
 	});
 }
 
